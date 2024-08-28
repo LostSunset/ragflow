@@ -18,6 +18,7 @@ from .chat_model import *
 from .cv_model import *
 from .rerank_model import *
 from .sequence2txt_model import *
+from .tts_model import * 
 
 EmbeddingModel = {
     "Ollama": OllamaEmbed,
@@ -36,7 +37,15 @@ EmbeddingModel = {
     "Bedrock": BedrockEmbed,
     "Gemini": GeminiEmbed,
     "NVIDIA": NvidiaEmbed,
-    "LM-Studio": LmStudioEmbed
+    "LM-Studio": LmStudioEmbed,
+    "OpenAI-API-Compatible": OpenAI_APIEmbed,
+    "cohere": CoHereEmbed,
+    "TogetherAI": TogetherAIEmbed,
+    "PerfXCloud": PerfXCloudEmbed,
+    "Upstage": UpstageEmbed,
+    "SILICONFLOW": SILICONFLOWEmbed,
+    "Replicate": ReplicateEmbed,
+    "BaiduYiyan": BaiduYiyanEmbed
 }
 
 
@@ -53,7 +62,11 @@ CvModel = {
     "LocalAI": LocalAICV,
     "NVIDIA": NvidiaCV,
     "LM-Studio": LmStudioCV,
-    "StepFun":StepFunCV
+    "StepFun":StepFunCV,
+    "OpenAI-API-Compatible": OpenAI_APICV,
+    "TogetherAI": TogetherAICV,
+    "01.AI": YiCV,
+    "Tencent Hunyuan": HunyuanCV
 }
 
 
@@ -78,7 +91,20 @@ ChatModel = {
     "OpenRouter": OpenRouterChat,
     "StepFun": StepFunChat,
     "NVIDIA": NvidiaChat,
-    "LM-Studio": LmStudioChat
+    "LM-Studio": LmStudioChat,
+    "OpenAI-API-Compatible": OpenAI_APIChat,
+    "cohere": CoHereChat,
+    "LeptonAI": LeptonAIChat,
+    "TogetherAI": TogetherAIChat,
+    "PerfXCloud": PerfXCloudChat,
+    "Upstage":UpstageChat,
+    "novita.ai": NovitaAIChat,
+    "SILICONFLOW": SILICONFLOWChat,
+    "01.AI": YiChat,
+    "Replicate": ReplicateChat,
+    "Tencent Hunyuan": HunyuanChat,
+    "XunFei Spark": SparkChat,
+    "BaiduYiyan": BaiduYiyanChat
 }
 
 
@@ -88,7 +114,12 @@ RerankModel = {
     "Youdao": YoudaoRerank,
     "Xinference": XInferenceRerank,
     "NVIDIA": NvidiaRerank,
-    "LM-Studio": LmStudioRerank
+    "LM-Studio": LmStudioRerank,
+    "OpenAI-API-Compatible": OpenAI_APIRerank,
+    "cohere": CoHereRerank,
+    "TogetherAI": TogetherAIRerank,
+    "SILICONFLOW": SILICONFLOWRerank,
+    "BaiduYiyan": BaiduYiyanRerank
 }
 
 
@@ -97,5 +128,10 @@ Seq2txtModel = {
     "Tongyi-Qianwen": QWenSeq2txt,
     "Ollama": OllamaSeq2txt,
     "Azure-OpenAI": AzureSeq2txt,
-    "Xinference": XinferenceSeq2txt
+    "Xinference": XinferenceSeq2txt,
+    "Tencent Cloud": TencentCloudSeq2txt
+}
+
+TTSModel = {
+    "Fish Audio": FishAudioTTS
 }

@@ -1,5 +1,6 @@
-import { useCallback } from 'react';
-import { Operator } from './constant';
+import { useTranslate } from '@/hooks/common-hooks';
+import { useCallback, useMemo } from 'react';
+import { Operator, RestrictedUpstreamMap } from './constant';
 import useGraphStore from './store';
 
 const ExcludedNodesMap = {
@@ -12,6 +13,7 @@ const ExcludedNodesMap = {
   ],
   [Operator.Relevant]: [Operator.Begin, Operator.Answer, Operator.Relevant],
   [Operator.Generate]: [Operator.Begin],
+  [Operator.Switch]: [Operator.Begin],
 };
 
 export const useBuildFormSelectOptions = (
@@ -22,7 +24,8 @@ export const useBuildFormSelectOptions = (
 
   const buildCategorizeToOptions = useCallback(
     (toList: string[]) => {
-      const excludedNodes: Operator[] = ExcludedNodesMap[operatorName] ?? [];
+      const excludedNodes: Operator[] =
+        RestrictedUpstreamMap[operatorName] ?? [];
       return nodes
         .filter(
           (x) =>
@@ -70,4 +73,16 @@ export const useHandleFormSelectChange = (nodeId?: string) => {
   );
 
   return { handleSelectChange };
+};
+
+export const useBuildSortOptions = () => {
+  const { t } = useTranslate('flow');
+
+  const options = useMemo(() => {
+    return ['data', 'relevance'].map((x) => ({
+      value: x,
+      label: t(x),
+    }));
+  }, [t]);
+  return options;
 };

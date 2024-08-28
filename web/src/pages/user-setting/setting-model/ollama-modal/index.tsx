@@ -47,7 +47,7 @@ const OllamaModal = ({
         return (
           <Flex justify={'space-between'}>
             <a
-              href={`https://github.com/infiniflow/ragflow/blob/main/docs/guides/deploy_local_llm.md`}
+              href={`https://github.com/infiniflow/ragflow/blob/main/docs/guides/deploy_local_llm.mdx`}
               target="_blank"
               rel="noreferrer"
             >
@@ -91,6 +91,13 @@ const OllamaModal = ({
           rules={[{ required: true, message: t('baseUrlNameMessage') }]}
         >
           <Input placeholder={t('baseUrlNameMessage')} />
+        </Form.Item>
+        <Form.Item<FieldType>
+          label={t('apiKey')}
+          name="api_key"
+          rules={[{ required: false, message: t('apiKeyMessage') }]}
+        >
+          <Input placeholder={t('apiKeyMessage')} />
         </Form.Item>
         <Form.Item noStyle dependencies={['model_type']}>
           {({ getFieldValue }) =>

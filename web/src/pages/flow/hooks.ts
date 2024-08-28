@@ -30,26 +30,35 @@ import {
   NodeMap,
   Operator,
   RestrictedUpstreamMap,
+  SwitchElseTo,
   initialArXivValues,
+  initialBaiduFanyiValues,
   initialBaiduValues,
   initialBeginValues,
   initialBingValues,
   initialCategorizeValues,
+  initialDeepLValues,
   initialDuckValues,
+  initialExeSqlValues,
   initialGenerateValues,
+  initialGithubValues,
+  initialGoogleScholarValues,
   initialGoogleValues,
   initialKeywordExtractValues,
   initialMessageValues,
   initialPubMedValues,
+  initialQWeatherValues,
   initialRelevantValues,
   initialRetrievalValues,
   initialRewriteQuestionValues,
+  initialSwitchValues,
   initialWikipediaValues,
 } from './constant';
-import { ICategorizeForm, IRelevantForm } from './interface';
+import { ICategorizeForm, IRelevantForm, ISwitchForm } from './interface';
 import useGraphStore, { RFState } from './store';
 import {
   buildDslComponentsByGraph,
+  generateSwitchHandleText,
   receiveMessageError,
   replaceIdWithText,
 } from './utils';
@@ -97,6 +106,13 @@ export const useInitializeOperatorParams = () => {
       [Operator.ArXiv]: initialArXivValues,
       [Operator.Google]: initialGoogleValues,
       [Operator.Bing]: initialBingValues,
+      [Operator.GoogleScholar]: initialGoogleScholarValues,
+      [Operator.DeepL]: initialDeepLValues,
+      [Operator.GitHub]: initialGithubValues,
+      [Operator.BaiduFanyi]: initialBaiduFanyiValues,
+      [Operator.QWeather]: initialQWeatherValues,
+      [Operator.ExeSQL]: initialExeSqlValues,
+      [Operator.Switch]: initialSwitchValues,
     };
   }, [llmId]);
 
@@ -252,8 +268,22 @@ export const useHandleFormValuesChange = (id?: string) => {
   const updateNodeForm = useGraphStore((state) => state.updateNodeForm);
   const handleValuesChange = useCallback(
     (changedValues: any, values: any) => {
+      let nextValues: any = values;
+      // Fixed the issue that the related form value does not change after selecting the freedom field of the model
+      if (
+        Object.keys(changedValues).length === 1 &&
+        'parameter' in changedValues &&
+        changedValues['parameter'] in settledModelVariableMap
+      ) {
+        nextValues = {
+          ...values,
+          ...settledModelVariableMap[
+            changedValues['parameter'] as keyof typeof settledModelVariableMap
+          ],
+        };
+      }
       if (id) {
-        updateNodeForm(id, values);
+        updateNodeForm(id, nextValues);
       }
     },
     [updateNodeForm, id],
@@ -470,6 +500,42 @@ export const useWatchNodeFormDataChange = () => {
     [setEdgesByNodeId],
   );
 
+  const buildSwitchEdgesByFormData = useCallback(
+    (nodeId: string, form: ISwitchForm) => {
+      // add
+      // delete
+      // edit
+      const conditions = form.conditions;
+      const downstreamEdges = conditions.reduce<Edge[]>((pre, _, idx) => {
+        const target = conditions[idx]?.to;
+        if (target) {
+          pre.push({
+            id: uuid(),
+            source: nodeId,
+            target,
+            sourceHandle: generateSwitchHandleText(idx),
+          });
+        }
+
+        return pre;
+      }, []);
+
+      // Splice the else condition of the conditional judgment to the edge list
+      const elseTo = form[SwitchElseTo];
+      if (elseTo) {
+        downstreamEdges.push({
+          id: uuid(),
+          source: nodeId,
+          target: elseTo,
+          sourceHandle: SwitchElseTo,
+        });
+      }
+
+      setEdgesByNodeId(nodeId, downstreamEdges);
+    },
+    [setEdgesByNodeId],
+  );
+
   useEffect(() => {
     nodes.forEach((node) => {
       const currentNode = getNode(node.id);
@@ -482,6 +548,9 @@ export const useWatchNodeFormDataChange = () => {
         case Operator.Categorize:
           buildCategorizeEdgesByFormData(node.id, form as ICategorizeForm);
           break;
+        case Operator.Switch:
+          buildSwitchEdgesByFormData(node.id, form as ISwitchForm);
+          break;
         default:
           break;
       }
@@ -491,5 +560,29 @@ export const useWatchNodeFormDataChange = () => {
     buildCategorizeEdgesByFormData,
     getNode,
     buildRelevantEdgesByFormData,
+    buildSwitchEdgesByFormData,
   ]);
+};
+
+// exclude nodes with branches
+const ExcludedNodes = [
+  Operator.Categorize,
+  Operator.Relevant,
+  Operator.Begin,
+  Operator.Answer,
+];
+
+export const useBuildComponentIdSelectOptions = (nodeId?: string) => {
+  const nodes = useGraphStore((state) => state.nodes);
+
+  const options = useMemo(() => {
+    return nodes
+      .filter(
+        (x) =>
+          x.id !== nodeId && !ExcludedNodes.some((y) => y === x.data.label),
+      )
+      .map((x) => ({ label: x.data.name, value: x.id }));
+  }, [nodes, nodeId]);
+
+  return options;
 };

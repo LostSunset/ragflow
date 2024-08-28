@@ -55,6 +55,7 @@ class LLMType(StrEnum):
     SPEECH2TEXT = 'speech2text'
     IMAGE2TEXT = 'image2text'
     RERANK = 'rerank'
+    TTS    = 'tts'
 
 
 class ChatStyle(StrEnum):
@@ -85,6 +86,8 @@ class ParserType(StrEnum):
     PICTURE = "picture"
     ONE = "one"
     AUDIO = "audio"
+    EMAIL = "email"
+    KG = "knowledge_graph"
 
 
 class FileSource(StrEnum):
