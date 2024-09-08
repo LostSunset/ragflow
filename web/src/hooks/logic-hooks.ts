@@ -10,7 +10,7 @@ import { IClientConversation, IMessage } from '@/pages/chat/interface';
 import api from '@/utils/api';
 import { getAuthorization } from '@/utils/authorization-util';
 import { buildMessageUuid, getMessagePureId } from '@/utils/chat';
-import { PaginationProps } from 'antd';
+import { PaginationProps, message } from 'antd';
 import { FormInstance } from 'antd/lib';
 import axios from 'axios';
 import { EventSourceParserStream } from 'eventsource-parser/stream';
@@ -243,6 +243,10 @@ export const useSendMessageWithSse = (
           const x = await reader?.read();
           if (x) {
             const { done, value } = x;
+            if (done) {
+              console.info('done');
+              break;
+            }
             try {
               const val = JSON.parse(value?.data || '');
               const d = val?.data;
@@ -256,17 +260,15 @@ export const useSendMessageWithSse = (
             } catch (e) {
               console.warn(e);
             }
-            if (done) {
-              console.info('done');
-              break;
-            }
           }
         }
         console.info('done?');
         setDone(true);
+        setAnswer({} as IAnswer);
         return { data: await res, response };
       } catch (e) {
         setDone(true);
+        setAnswer({} as IAnswer);
         console.warn(e);
       }
     },
@@ -274,6 +276,33 @@ export const useSendMessageWithSse = (
   );
 
   return { send, answer, done, setDone };
+};
+
+export const useSpeechWithSse = (url: string = api.tts) => {
+  const read = useCallback(
+    async (body: any) => {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          [Authorization]: getAuthorization(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      try {
+        const res = await response.clone().json();
+        if (res?.retcode !== 0) {
+          message.error(res?.retmsg);
+        }
+      } catch (error) {
+        console.warn('🚀 ~ error:', error);
+      }
+      return response;
+    },
+    [url],
+  );
+
+  return { read };
 };
 
 //#region chat hooks
@@ -349,6 +378,7 @@ export const useSelectDerivedMessages = () => {
             role: MessageType.Assistant,
           }),
           prompt: answer.prompt,
+          audio_binary: answer.audio_binary,
         },
       ];
     });
