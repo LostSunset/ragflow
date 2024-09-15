@@ -18,7 +18,7 @@
     <a href="https://demo.ragflow.io" target="_blank">
         <img alt="Static Badge" src="https://img.shields.io/badge/Online-Demo-4e6b99"></a>
     <a href="https://hub.docker.com/r/infiniflow/ragflow" target="_blank">
-        <img src="https://img.shields.io/badge/docker_pull-ragflow:v0.10.0-brightgreen" alt="docker pull infiniflow/ragflow:v0.10.0"></a>
+        <img src="https://img.shields.io/badge/docker_pull-ragflow:v0.11.0-brightgreen" alt="docker pull infiniflow/ragflow:v0.11.0"></a>
     <a href="https://github.com/infiniflow/ragflow/blob/main/LICENSE">
     <img height="21" src="https://img.shields.io/badge/License-Apache--2.0-ffffff?labelColor=d4eaf7&color=2e6cc4" alt="license">
   </a>
@@ -49,31 +49,22 @@
 
 ## 🔥 업데이트
 
+- 2024-09-13 지식베이스 Q&A 검색 모드를 추가합니다.
+  
+- 2024-09-09 Agent에 의료상담 템플릿을 추가하였습니다.
+  
 - 2024-08-22 RAG를 통해 SQL 문에 텍스트를 지원합니다.
   
 - 2024-08-02: [graphrag](https://github.com/microsoft/graphrag)와 마인드맵에서 영감을 받은 GraphRAG를 지원합니다.
 
 - 2024-07-23: 오디오 파일 분석을 지원합니다.
 
-- 2024-07-21: 더 많은 LLMs(LocalAI, OpenRouter, StepFun, Nvidia)를 지원합니다.
+- 2024-07-08: [Graph](./agent/README.md)를 기반으로 한 워크플로우를 지원합니다.
 
-- 2024-07-18: 그래프에 더 많은 구성요소(Wikipedia, PubMed, Baidu, Duckduckgo)를 추가합니다.
-
-- 2024-07-08: [Graph](./graph/README.md)를 기반으로 한 워크플로우를 지원합니다.
-
-- 2024-06-27: Q&A 분석 방법에서 Markdown과 Docx를 지원합니다.
-
-- 2024-06-27: Docx 파일에서 이미지 추출을 지원합니다.
-
-- 2024-06-27: Markdown 파일에서 표 추출을 지원합니다.
-
-- 2024-06-06: 대화 설정에서 기본으로 [Self-RAG](https://huggingface.co/papers/2310.11511)를 지원합니다.
-
-- 2024-05-30: [BCE](https://github.com/netease-youdao/BCEmbedding) 및 [BGE](https://github.com/FlagOpen/FlagEmbedding) reranker 모델을 통합합니다.
+- 2024-06-27 Q&A 구문 분석 방식에서 Markdown 및 Docx를 지원하고, Docx 파일에서 이미지 추출, Markdown 파일에서 테이블 추출을 지원합니다.
 
 - 2024-05-23: 더 나은 텍스트 검색을 위해 [RAPTOR](https://arxiv.org/html/2401.18059v1)를 지원합니다.
 
-- 2024-05-15: OpenAI GPT-4o를 통합합니다.
 
 
 ## 🌟 주요 기능
@@ -147,7 +138,7 @@
 
 3. 미리 빌드된 Docker 이미지를 생성하고 서버를 시작하세요:
 
-   > 다음 명령어를 실행하면 *dev* 버전의 RAGFlow Docker 이미지가 자동으로 다운로드됩니다. 특정 Docker 버전을 다운로드하고 실행하려면, **docker/.env** 파일에서 `RAGFLOW_VERSION`을 원하는 버전으로 업데이트한 후, 예를 들어 `RAGFLOW_VERSION=v0.10.0`로 업데이트 한 뒤, 다음 명령어를 실행하세요.
+   > 다음 명령어를 실행하면 *dev* 버전의 RAGFlow Docker 이미지가 자동으로 다운로드됩니다. 특정 Docker 버전을 다운로드하고 실행하려면, **docker/.env** 파일에서 `RAGFLOW_VERSION`을 원하는 버전으로 업데이트한 후, 예를 들어 `RAGFLOW_VERSION=v0.11.0`로 업데이트 한 뒤, 다음 명령어를 실행하세요.
    ```bash
    $ cd ragflow/docker
    $ chmod +x ./entrypoint.sh

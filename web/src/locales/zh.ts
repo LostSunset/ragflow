@@ -192,7 +192,7 @@ export default {
       我们假设手册具有分层部分结构。 我们使用最低的部分标题作为对文档进行切片的枢轴。
       因此，同一部分中的图和表不会被分割，并且块大小可能会很大。
       </p>`,
-      naive: `<p>支持的文件格式为<b>DOCX、EXCEL、PPT、IMAGE、PDF、TXT、MD、JSON、EML</b>。</p>
+      naive: `<p>支持的文件格式为<b>DOCX、EXCEL、PPT、IMAGE、PDF、TXT、MD、JSON、EML、HTML</b>。</p>
       <p>此方法将简单的方法应用于块文件：</p>
       <p>
       <li>系统将使用视觉检测模型将连续文本分割成多个片段。</li>
@@ -417,6 +417,8 @@ export default {
       read: '朗读内容',
       tts: '文本转语音',
       ttsTip: '是否用语音转换播放语音，请先在设置里面选择TTS（语音转换模型）。',
+      relatedQuestion: '相关问题',
+      answerTitle: '智能回答',
     },
     setting: {
       profile: '概要',
@@ -621,7 +623,7 @@ export default {
       operation: '操作',
       run: '运行',
       save: '保存',
-      title: '标题：',
+      title: 'ID：',
       beginDescription: '这是流程开始的地方',
       answerDescription: `该组件用作机器人与人类之间的接口。它接收用户的输入并显示机器人的计算结果。`,
       retrievalDescription: `此组件用于从知识库中检索相关信息。选择知识库。如果没有检索到任何内容，将返回“空响应”。`,
@@ -847,6 +849,25 @@ export default {
       operator: '操作符',
       value: '值',
       useTemplate: '使用该模板',
+      wenCai: '问财',
+      queryType: '查询类型',
+      wenCaiDescription:
+        '该组件可用于获取广泛金融领域的信息，包括但不限于股票、基金等...',
+      wenCaiQueryTypeOptions: {
+        stock: '股票',
+        zhishu: '指数',
+        fund: '基金',
+        hkstock: '港股',
+        usstock: '美股',
+        threeboard: '新三板',
+        conbond: '可转债',
+        insurance: '保险',
+        futures: '期货',
+        lccp: '理财',
+        foreign_exchange: '股票',
+      },
+      akShare: 'AkShare',
+      akShareDescription: '该组件可用于从东方财富网站获取相应股票的新闻信息。',
     },
     footer: {
       profile: 'All rights reserved @ React',

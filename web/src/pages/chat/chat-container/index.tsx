@@ -1,9 +1,7 @@
 import MessageItem from '@/components/message-item';
-import DocumentPreviewer from '@/components/pdf-previewer';
 import { MessageType } from '@/constants/chat';
-import { Drawer, Flex, Spin } from 'antd';
+import { Flex, Spin } from 'antd';
 import {
-  useClickDrawer,
   useCreateConversationBeforeUploadDocument,
   useGetFileIcon,
   useGetSendButtonDisabled,
@@ -13,12 +11,15 @@ import {
 import { buildMessageItemReference } from '../utils';
 
 import MessageInput from '@/components/message-input';
+import PdfDrawer from '@/components/pdf-drawer';
+import { useClickDrawer } from '@/components/pdf-drawer/hooks';
 import {
   useFetchNextConversation,
   useGetChatSearchParams,
 } from '@/hooks/chat-hooks';
 import { useFetchUserInfo } from '@/hooks/user-setting-hooks';
 import { memo } from 'react';
+import { ConversationContext } from '../context';
 import styles from './index.less';
 
 const ChatContainer = () => {
@@ -26,15 +27,16 @@ const ChatContainer = () => {
   const { data: conversation } = useFetchNextConversation();
 
   const {
+    value,
     ref,
     loading,
     sendLoading,
     derivedMessages,
     handleInputChange,
     handlePressEnter,
-    value,
     regenerateMessage,
     removeMessageById,
+    redirectToNewConversation,
   } = useSendNextMessage();
 
   const { visible, hideModal, documentId, selectedChunk, clickDocumentButton } =
@@ -52,33 +54,35 @@ const ChatContainer = () => {
         <Flex flex={1} vertical className={styles.messageContainer}>
           <div>
             <Spin spinning={loading}>
-              {derivedMessages?.map((message, i) => {
-                return (
-                  <MessageItem
-                    loading={
-                      message.role === MessageType.Assistant &&
-                      sendLoading &&
-                      derivedMessages.length - 1 === i
-                    }
-                    key={message.id}
-                    item={message}
-                    nickname={userInfo.nickname}
-                    avatar={userInfo.avatar}
-                    reference={buildMessageItemReference(
-                      {
-                        message: derivedMessages,
-                        reference: conversation.reference,
-                      },
-                      message,
-                    )}
-                    clickDocumentButton={clickDocumentButton}
-                    index={i}
-                    removeMessageById={removeMessageById}
-                    regenerateMessage={regenerateMessage}
-                    sendLoading={sendLoading}
-                  ></MessageItem>
-                );
-              })}
+              <ConversationContext.Provider value={redirectToNewConversation}>
+                {derivedMessages?.map((message, i) => {
+                  return (
+                    <MessageItem
+                      loading={
+                        message.role === MessageType.Assistant &&
+                        sendLoading &&
+                        derivedMessages.length - 1 === i
+                      }
+                      key={message.id}
+                      item={message}
+                      nickname={userInfo.nickname}
+                      avatar={userInfo.avatar}
+                      reference={buildMessageItemReference(
+                        {
+                          message: derivedMessages,
+                          reference: conversation.reference,
+                        },
+                        message,
+                      )}
+                      clickDocumentButton={clickDocumentButton}
+                      index={i}
+                      removeMessageById={removeMessageById}
+                      regenerateMessage={regenerateMessage}
+                      sendLoading={sendLoading}
+                    ></MessageItem>
+                  );
+                })}
+              </ConversationContext.Provider>
             </Spin>
           </div>
           <div ref={ref} />
@@ -96,18 +100,12 @@ const ChatContainer = () => {
           }
         ></MessageInput>
       </Flex>
-      <Drawer
-        title="Document Previewer"
-        onClose={hideModal}
-        open={visible}
-        width={'50vw'}
-      >
-        <DocumentPreviewer
-          documentId={documentId}
-          chunk={selectedChunk}
-          visible={visible}
-        ></DocumentPreviewer>
-      </Drawer>
+      <PdfDrawer
+        visible={visible}
+        hideModal={hideModal}
+        documentId={documentId}
+        chunk={selectedChunk}
+      ></PdfDrawer>
     </>
   );
 };
