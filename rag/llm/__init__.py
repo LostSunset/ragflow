@@ -18,7 +18,7 @@ from .chat_model import *
 from .cv_model import *
 from .rerank_model import *
 from .sequence2txt_model import *
-from .tts_model import * 
+from .tts_model import *
 
 EmbeddingModel = {
     "Ollama": OllamaEmbed,
@@ -46,7 +46,8 @@ EmbeddingModel = {
     "SILICONFLOW": SILICONFLOWEmbed,
     "Replicate": ReplicateEmbed,
     "BaiduYiyan": BaiduYiyanEmbed,
-    "Voyage AI": VoyageEmbed
+    "Voyage AI": VoyageEmbed,
+    "HuggingFace":HuggingFaceEmbed,
 }
 
 
@@ -139,5 +140,6 @@ Seq2txtModel = {
 TTSModel = {
     "Fish Audio": FishAudioTTS,
     "Tongyi-Qianwen": QwenTTS,
-    "OpenAI":OpenAITTS
+    "OpenAI":OpenAITTS,
+    "XunFei Spark":SparkTTS
 }
