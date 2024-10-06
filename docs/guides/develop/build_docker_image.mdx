@@ -4,6 +4,8 @@ slug: /build_docker_image
 ---
 
 # Build a RAGFlow Docker Image
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
 
 A guide explaining how to build a RAGFlow Docker image from its source code. By following this guide, you'll be able to create a local Docker image that can be used for development, debugging, or testing purposes.
 
@@ -23,30 +25,40 @@ A guide explaining how to build a RAGFlow Docker image from its source code. By 
 If you have not installed Docker on your local machine (Windows, Mac, or Linux), see the [Install Docker Engine](https://docs.docker.com/engine/install/) guide.
 :::
 
-## Build a RAGFlow Docker Image
+## Build a Docker image
 
-To build a RAGFlow Docker image from source code:
+<Tabs
+  defaultValue="without"
+  values={[
+    {label: 'Build a Docker image without embedding models', value: 'without'},
+    {label: 'Build a Docker image including embedding models', value: 'including'}
+  ]}>
+  <TabItem value="without">
 
-### Git Clone the Repository
+This image is approximately 1 GB in size and relies on external LLM and embedding services.
 
 ```bash
 git clone https://github.com/infiniflow/ragflow.git
-cd ragflow
-```
-
-### Build the Docker Image
-
-Navigate to the `ragflow` directory where the Dockerfile and other necessary files are located. Now you can build the Docker image using the provided Dockerfile. The command below specifies which Dockerfile to use and tages the image with a name for reference purpose.
-
-#### Build image `ragflow:dev-slim`
-```bash
+cd ragflow/
+pip3 install huggingface-hub nltk
+python3 download_deps.py
 docker build -f Dockerfile.slim -t infiniflow/ragflow:dev-slim .
 ```
-This image's size is about 1GB. It relies external LLM services since it doesn't contain embedding models. 
 
-#### Build image `ragflow:dev`
+  </TabItem>
+  <TabItem value="including">
+
+## Build a Docker image including embedding models
+
+This image is approximately 9 GB in size. As it includes embedding models, it relies on external LLM services only.  
+
 ```bash
+git clone https://github.com/infiniflow/ragflow.git
 cd ragflow/
+pip3 install huggingface-hub nltk
+python3 download_deps.py
 docker build -f Dockerfile -t infiniflow/ragflow:dev .
 ```
-This image's size is about 11GB. It contains embedding models, and can inference via local CPU/GPU or external LLM services.
+
+  </TabItem>
+</Tabs>
