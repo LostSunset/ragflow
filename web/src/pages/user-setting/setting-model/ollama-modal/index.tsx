@@ -53,6 +53,29 @@ const OllamaModal = ({
   const url =
     llmFactoryToUrlMap[llmFactory as LlmFactory] ||
     'https://github.com/infiniflow/ragflow/blob/main/docs/guides/deploy_local_llm.mdx';
+  const optionsMap = {
+    HuggingFace: [
+      { value: 'embedding', label: 'embedding' },
+      { value: 'chat', label: 'chat' },
+    ],
+    Xinference: [
+      { value: 'chat', label: 'chat' },
+      { value: 'embedding', label: 'embedding' },
+      { value: 'rerank', label: 'rerank' },
+      { value: 'image2text', label: 'image2text' },
+      { value: 'speech2text', label: 'sequence2text' },
+      { value: 'tts', label: 'tts' },
+    ],
+    Default: [
+      { value: 'chat', label: 'chat' },
+      { value: 'embedding', label: 'embedding' },
+      { value: 'rerank', label: 'rerank' },
+      { value: 'image2text', label: 'image2text' },
+    ],
+  };
+  const getOptions = (factory: string) => {
+    return optionsMap[factory as keyof typeof optionsMap] || optionsMap.Default;
+  };
   return (
     <Modal
       title={t('addLlmTitle', { name: llmFactory })}
@@ -81,22 +104,15 @@ const OllamaModal = ({
         <Form.Item<FieldType>
           label={t('modelType')}
           name="model_type"
-          initialValue={'chat'}
+          initialValue={'embedding'}
           rules={[{ required: true, message: t('modelTypeMessage') }]}
         >
           <Select placeholder={t('modelTypeMessage')}>
-            {llmFactory === 'HuggingFace' ? (
-              <Option value="embedding">embedding</Option>
-            ) : (
-              <>
-                <Option value="chat">chat</Option>
-                <Option value="embedding">embedding</Option>
-                <Option value="rerank">rerank</Option>
-                <Option value="image2text">image2text</Option>
-                <Option value="audio2text">audio2text</Option>
-                <Option value="text2andio">text2andio</Option>
-              </>
-            )}
+            {getOptions(llmFactory).map((option) => (
+              <Option key={option.value} value={option.value}>
+                {option.label}
+              </Option>
+            ))}
           </Select>
         </Form.Item>
         <Form.Item<FieldType>
