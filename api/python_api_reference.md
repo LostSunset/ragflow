@@ -17,10 +17,9 @@ RAGFlow.create_dataset(
     name: str,
     avatar: str = "",
     description: str = "",
+    embedding_model: str = "BAAI/bge-zh-v1.5",
     language: str = "English",
     permission: str = "me", 
-    document_count: int = 0,
-    chunk_count: int = 0,
     chunk_method: str = "naive",
     parser_config: DataSet.ParserConfig = None
 ) -> DataSet
@@ -74,7 +73,7 @@ The chunking method of the dataset to create. Available options:
 - `"laws"`: Laws
 - `"presentation"`: Presentation
 - `"picture"`: Picture
-- `"one"`:One
+- `"one"`: One
 - `"knowledge_graph"`: Knowledge Graph
 - `"email"`: Email
 
@@ -109,13 +108,13 @@ dataset = rag_object.create_dataset(name="kb_1")
 RAGFlow.delete_datasets(ids: list[str] = None)
 ```
 
-Deletes specified datasets or all datasets in the system.
+Deletes datasets by ID.
 
 ### Parameters
 
-#### ids: `list[str]`
+#### ids: `list[str]`, *Required*
 
-The IDs of the datasets to delete. Defaults to `None`. If not specified, all datasets in the system will be deleted.
+The IDs of the datasets to delete. Defaults to `None`. If it is not specified, all datasets will be deleted.
 
 ### Returns
 
@@ -143,7 +142,7 @@ RAGFlow.list_datasets(
 ) -> list[DataSet]
 ```
 
-Retrieves a list of datasets.
+Lists datasets.
 
 ### Parameters
 
@@ -211,8 +210,8 @@ Updates configurations for the current dataset.
 
 A dictionary representing the attributes to update, with the following keys:
 
-- `"name"`: `str` The name of the dataset to update.
-- `"embedding_model"`: `str` The embedding model name to update.
+- `"name"`: `str` The revised name of the dataset.
+- `"embedding_model"`: `str` The updated embedding model name.
   - Ensure that `"chunk_count"` is `0` before updating `"embedding_model"`.
 - `"chunk_method"`: `str` The chunking method for the dataset. Available options:
   - `"naive"`: General
@@ -224,7 +223,7 @@ A dictionary representing the attributes to update, with the following keys:
   - `"laws"`: Laws
   - `"presentation"`: Presentation
   - `"picture"`: Picture
-  - `"one"`:One
+  - `"one"`: One
   - `"knowledge_graph"`: Knowledge Graph
   - `"email"`: Email
 
@@ -296,7 +295,7 @@ Updates configurations for the current document.
 
 A dictionary representing the attributes to update, with the following keys:
 
-- `"name"`: `str` The name of the document to update.
+- `"display_name"`: `str` The name of the document to update.
 - `"parser_config"`: `dict[str, Any]` The parsing configuration for the document:
   - `"chunk_token_count"`: Defaults to `128`.
   - `"layout_recognize"`: Defaults to `True`.
@@ -367,10 +366,10 @@ print(doc)
 ## List documents
 
 ```python
-Dataset.list_documents(id:str =None, keywords: str=None, offset: int=0, limit:int = 1024,order_by:str = "create_time", desc: bool = True) -> list[Document]
+Dataset.list_documents(id:str =None, keywords: str=None, offset: int=1, limit:int = 1024,order_by:str = "create_time", desc: bool = True) -> list[Document]
 ```
 
-Retrieves a list of documents from the current dataset.
+Lists documents in the current dataset.
 
 ### Parameters
 
@@ -380,15 +379,15 @@ The ID of the document to retrieve. Defaults to `None`.
 
 #### keywords: `str`
 
-The keywords to match document titles. Defaults to `None`.
+The keywords used to match document titles. Defaults to `None`.
 
 #### offset: `int`
 
-The starting index for the documents to retrieve. Typically used in confunction with `limit`. Defaults to `0`.
+The starting index for the documents to retrieve. Typically used in conjunction with `limit`. Defaults to `0`.
 
 #### limit: `int`
 
-The maximum number of documents to retrieve. Defaults to `1024`. A value of `-1` indicates that all documents should be returned.
+The maximum number of documents to retrieve. Defaults to `1024`.
 
 #### orderby: `str`
 
@@ -411,29 +410,34 @@ A `Document` object contains the following attributes:
 - `id`: The document ID. Defaults to `""`.
 - `name`: The document name. Defaults to `""`.
 - `thumbnail`: The thumbnail image of the document. Defaults to `None`.
-- `knowledgebase_id`: The dataset ID associated with the document. Defaults to `None`.
-- `chunk_method` The chunk method name. Defaults to `""`. ?????naive??????
+- `dataset_id`: The dataset ID associated with the document. Defaults to `None`.
+- `chunk_method` The chunk method name. Defaults to `"naive"`.
 - `parser_config`: `ParserConfig` Configuration object for the parser. Defaults to `{"pages": [[1, 1000000]]}`.
 - `source_type`: The source type of the document. Defaults to `"local"`.
-- `type`: Type or category of the document???????????. Defaults to `""`.
+- `type`: Type or category of the document. Defaults to `""`. Reserved for future use.
 - `created_by`: `str` The creator of the document. Defaults to `""`.
 - `size`: `int` The document size in bytes. Defaults to `0`.
 - `token_count`: `int` The number of tokens in the document. Defaults to `0`.
-- `chunk_count`: `int` The number of chunks that the document is split into. Defaults to `0`.
+- `chunk_count`: `int` The number of chunks in the document. Defaults to `0`.
 - `progress`: `float` The current processing progress as a percentage. Defaults to `0.0`.
 - `progress_msg`: `str` A message indicating the current progress status. Defaults to `""`.
 - `process_begin_at`: `datetime` The start time of document processing. Defaults to `None`.
-- `process_duation`: `float` Duration of the processing in seconds or minutes.??????? Defaults to `0.0`.
-- `run`: `str` ?????????????????? Defaults to `"0"`.
-- `status`: `str` ??????????????????? Defaults to `"1"`.
+- `process_duation`: `float` Duration of the processing in seconds. Defaults to `0.0`.
+- `run`: `str` The document's processing status:
+  - `"UNSTART"`  (default)
+  - `"RUNNING"`
+  - `"CANCEL"`
+  - `"DONE"`
+  - `"FAIL"`
+- `status`: `str` Reserved for future use.
 
 ### Examples
 
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-dataset = rag.create_dataset(name="kb_1")
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+dataset = rag_object.create_dataset(name="kb_1")
 
 filename1 = "~/ragflow.txt"
 blob = open(filename1 , "rb").read()
@@ -456,7 +460,7 @@ Deletes documents by ID.
 
 #### ids: `list[list]`
 
-The IDs of the documents to delete. Defaults to `None`. If not specified, all documents in the dataset will be deleted.
+The IDs of the documents to delete. Defaults to `None`. If it is not specified, all documents in the dataset will be deleted.
 
 ### Returns
 
@@ -482,6 +486,8 @@ dataset.delete_documents(ids=["id_1","id_2"])
 DataSet.async_parse_documents(document_ids:list[str]) -> None
 ```
 
+Parses documents in the current dataset.
+
 ### Parameters
 
 #### document_ids: `list[str]`, *Required*
@@ -499,9 +505,9 @@ The IDs of the documents to parse.
 rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
 dataset = rag_object.create_dataset(name="dataset_name")
 documents = [
-    {'name': 'test1.txt', 'blob': open('./test_data/test1.txt',"rb").read()},
-    {'name': 'test2.txt', 'blob': open('./test_data/test2.txt',"rb").read()},
-    {'name': 'test3.txt', 'blob': open('./test_data/test3.txt',"rb").read()}
+    {'display_name': 'test1.txt', 'blob': open('./test_data/test1.txt',"rb").read()},
+    {'display_name': 'test2.txt', 'blob': open('./test_data/test2.txt',"rb").read()},
+    {'display_name': 'test3.txt', 'blob': open('./test_data/test3.txt',"rb").read()}
 ]
 dataset.upload_documents(documents)
 documents = dataset.list_documents(keywords="test")
@@ -520,6 +526,8 @@ print("Async bulk parsing initiated.")
 DataSet.async_cancel_parse_documents(document_ids:list[str])-> None
 ```
 
+Stops parsing specified documents.
+
 ### Parameters
 
 #### document_ids: `list[str]`, *Required*
@@ -537,9 +545,9 @@ The IDs of the documents for which parsing should be stopped.
 rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
 dataset = rag_object.create_dataset(name="dataset_name")
 documents = [
-    {'name': 'test1.txt', 'blob': open('./test_data/test1.txt',"rb").read()},
-    {'name': 'test2.txt', 'blob': open('./test_data/test2.txt',"rb").read()},
-    {'name': 'test3.txt', 'blob': open('./test_data/test3.txt',"rb").read()}
+    {'display_name': 'test1.txt', 'blob': open('./test_data/test1.txt',"rb").read()},
+    {'display_name': 'test2.txt', 'blob': open('./test_data/test2.txt',"rb").read()},
+    {'display_name': 'test3.txt', 'blob': open('./test_data/test3.txt',"rb").read()}
 ]
 dataset.upload_documents(documents)
 documents = dataset.list_documents(keywords="test")
@@ -554,29 +562,82 @@ print("Async bulk parsing cancelled.")
 
 ---
 
-## List chunks
+## Add chunk
 
 ```python
-Document.list_chunks(keywords: str = None, offset: int = 0, limit: int = -1, id : str = None) -> list[Chunk]
+Document.add_chunk(content:str, important_keywords:list[str] = []) -> Chunk
 ```
 
-Retrieves a list of document chunks.
+Adds a chunk to the current document.
 
 ### Parameters
 
-#### keywords: `str`  
-  
-List chunks whose name has the given keywords. Defaults to `None`
+#### content: `str`, *Required*
+
+The text content of the chunk.
+
+#### important_keywords: `list[str]`
+
+The key terms or phrases to tag with the chunk.
+
+### Returns
+
+- Success: A `Chunk` object.
+- Failure: `Exception`.
+
+A `Chunk` object contains the following attributes:
+
+- `id`: `str`: The chunk ID.
+- `content`: `str` The text content of the chunk.
+- `important_keywords`: `list[str]` A list of key terms or phrases tagged with the chunk.
+- `create_time`: `str` The time when the chunk was created (added to the document).
+- `create_timestamp`: `float` The timestamp representing the creation time of the chunk, expressed in seconds since January 1, 1970.
+- `dataset_id`: `str` The ID of the associated dataset.
+- `document_name`: `str` The name of the associated document.
+- `document_id`: `str` The ID of the associated document.
+- `available`: `bool` The chunk's availability status in the dataset. Value options:
+  - `False`: Unavailable
+  - `True`: Available (default)
+
+
+### Examples
+
+```python
+from ragflow import RAGFlow
+
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+dataset = rag_object.list_datasets(id="123")
+dtaset = dataset[0]
+doc = dataset.list_documents(id="wdfxb5t547d")
+doc = doc[0]
+chunk = doc.add_chunk(content="xxxxxxx")
+```
+
+---
+
+## List chunks
+
+```python
+Document.list_chunks(keywords: str = None, offset: int = 1, limit: int = 1024, id : str = None) -> list[Chunk]
+```
+
+Lists chunks in the current document.
+
+### Parameters
+
+#### keywords: `str`
+
+The keywords used to match chunk content. Defaults to `None`
 
 #### offset: `int`
 
-The starting index for the chunks to retrieve. Defaults to `1`
+The starting index for the chunks to retrieve. Defaults to `1`.
 
-#### limit  
+#### limit: `int`
 
-The maximum number of chunks to retrieve.  Default: `30`
+The maximum number of chunks to retrieve.  Default: `1024`
 
-#### id
+#### id: `str`
 
 The ID of the chunk to retrieve. Default: `None`
 
@@ -598,42 +659,9 @@ for chunk in doc.list_chunks(keywords="rag", offset=0, limit=12):
     print(chunk)
 ```
 
-## Add chunk
-
-```python
-Document.add_chunk(content:str) -> Chunk
-```
-
-### Parameters
-
-#### content: *Required*
-
-The text content of the chunk.
-
-#### important_keywords :`list[str]`
-
-List the key terms or phrases that are significant or central to the chunk's content.
-
-### Returns
-
-chunk
-
-### Examples
-
-```python
-from ragflow import RAGFlow
-
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-dataset = rag.list_datasets(id="123")
-dtaset = dataset[0]
-doc = dataset.list_documents(id="wdfxb5t547d")
-doc = doc[0]
-chunk = doc.add_chunk(content="xxxxxxx")
-```
-
 ---
 
-## Delete chunk
+## Delete chunks
 
 ```python
 Document.delete_chunks(chunk_ids: list[str])
@@ -645,7 +673,7 @@ Deletes chunks by ID.
 
 #### chunk_ids: `list[str]`
 
-The IDs of the chunks to delete. Defaults to `None`. If not specified, all chunks of the current document will be deleted.
+The IDs of the chunks to delete. Defaults to `None`. If it is not specified, all chunks of the current document will be deleted.
 
 ### Returns
 
@@ -657,10 +685,10 @@ The IDs of the chunks to delete. Defaults to `None`. If not specified, all chunk
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-ds = rag.list_datasets(id="123")
-ds = ds[0]
-doc = ds.list_documents(id="wdfxb5t547d")
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+dataset = rag_object.list_datasets(id="123")
+dataset = dataset[0]
+doc = dataset.list_documents(id="wdfxb5t547d")
 doc = doc[0]
 chunk = doc.add_chunk(content="xxxxxxx")
 doc.delete_chunks(["id_1","id_2"])
@@ -682,11 +710,11 @@ Updates content or configurations for the current chunk.
 
 A dictionary representing the attributes to update, with the following keys:
 
-- `"content"`: `str` Content of the chunk.
-- `"important_keywords"`: `list[str]` A list of key terms to attach to the chunk.
-- `"available"`: `int` The chunk's availability status in the dataset. Value options:
-  - `0`: Unavailable
-  - `1`: Available
+- `"content"`: `str` The text content of the chunk.
+- `"important_keywords"`: `list[str]` A list of key terms or phrases to tag with the chunk.
+- `"available"`: `bool` The chunk's availability status in the dataset. Value options:
+  - `False`: Unavailable
+  - `True`: Available (default)
 
 ### Returns
 
@@ -712,8 +740,10 @@ chunk.update({"content":"sdfx..."})
 ## Retrieve chunks
 
 ```python
-RAGFlow.retrieve(question:str="", datasets:list[str]=None, document=list[str]=None, offset:int=1, limit:int=30, similarity_threshold:float=0.2, vector_similarity_weight:float=0.3, top_k:int=1024,rerank_id:str=None,keyword:bool=False,higlight:bool=False) -> list[Chunk]
+RAGFlow.retrieve(question:str="", dataset_ids:list[str]=None, document_ids=list[str]=None, offset:int=1, limit:int=1024, similarity_threshold:float=0.2, vector_similarity_weight:float=0.3, top_k:int=1024,rerank_id:str=None,keyword:bool=False,higlight:bool=False) -> list[Chunk]
 ```
+
+Retrieves chunks from specified datasets.
 
 ### Parameters
 
@@ -721,27 +751,27 @@ RAGFlow.retrieve(question:str="", datasets:list[str]=None, document=list[str]=No
 
 The user query or query keywords. Defaults to `""`.
 
-#### datasets: `list[str]`, *Required*
+#### dataset_ids: `list[str]`, *Required*
 
-The datasets to search from.
+The IDs of the datasets to search. Defaults to `None`. If you do not set this argument, ensure that you set `document_ids`.
 
-#### document: `list[str]`
+#### document_ids: `list[str]`
 
-The documents to search from. `None` means no limitation. Defaults to `None`.
+The IDs of the documents to search. Defaults to `None`. You must ensure all selected documents use the same embedding model. Otherwise, an error will occur. If you do not set this argument, ensure that you set `dataset_ids`.
 
 #### offset: `int`
 
-The starting index for the documents to retrieve. Defaults to `0`??????.
+The starting index for the documents to retrieve. Defaults to `1`.
 
 #### limit: `int`
 
-The maximum number of chunks to retrieve. Defaults to `6`.
+The maximum number of chunks to retrieve. Defaults to `1024`.
 
 #### Similarity_threshold: `float`
 
 The minimum similarity score. Defaults to `0.2`.
 
-#### similarity_threshold_weight: `float`
+#### vector_similarity_weight: `float`
 
 The weight of vector cosine similarity. Defaults to `0.3`. If x represents the vector cosine similarity, then (1 - x) is the term similarity weight.
 
@@ -749,20 +779,23 @@ The weight of vector cosine similarity. Defaults to `0.3`. If x represents the v
 
 The number of chunks engaged in vector cosine computaton. Defaults to `1024`.
 
-#### rerank_id
+#### rerank_id: `str`
 
-The ID of the rerank model.  Defaults to `None`.
+The ID of the rerank model. Defaults to `None`.
 
-#### keyword
+#### keyword: `bool`
 
-Indicates whether keyword-based matching is enabled:
+Indicates whether to enable keyword-based matching:
 
-- `True`: Enabled.
-- `False`: Disabled.
+- `True`: Enable keyword-based matching.
+- `False`: Disable keyword-based matching (default).
 
-#### highlight:`bool`
+#### highlight: `bool`
 
-Specifying whether to enable highlighting of matched terms in the results (True) or not (False).
+Specifies whether to enable highlighting of matched terms in the results:
+
+- `True`: Enable highlighting of matched terms.
+- `False`: Disable highlighting of matched terms (default).
 
 ### Returns
 
@@ -775,16 +808,16 @@ Specifying whether to enable highlighting of matched terms in the results (True)
 from ragflow import RAGFlow
 
 rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-ds = rag_object.list_datasets(name="ragflow")
-ds = ds[0]
+dataset = rag_object.list_datasets(name="ragflow")
+dataset = dataset[0]
 name = 'ragflow_test.txt'
 path = './test_data/ragflow_test.txt'
-rag_object.create_document(ds, name=name, blob=open(path, "rb").read())
-doc = ds.list_documents(name=name)
+rag_object.create_document(dataset, name=name, blob=open(path, "rb").read())
+doc = dataset.list_documents(name=name)
 doc = doc[0]
-ds.async_parse_documents([doc.id])
+dataset.async_parse_documents([doc.id])
 for c in rag_object.retrieve(question="What's ragflow?", 
-             datasets=[ds.id], documents=[doc.id], 
+             dataset_ids=[dataset.id], document_ids=[doc.id], 
              offset=1, limit=30, similarity_threshold=0.2, 
              vector_similarity_weight=0.3,
              top_k=1024
@@ -806,7 +839,7 @@ Chat Assistant Management
 RAGFlow.create_chat(
     name: str, 
     avatar: str = "", 
-    knowledgebases: list[str] = [], 
+    dataset_ids: list[str] = [], 
     llm: Chat.LLM = None, 
     prompt: Chat.Prompt = None
 ) -> Chat
@@ -816,55 +849,54 @@ Creates a chat assistant.
 
 ### Parameters
 
-The following shows the attributes of a `Chat` object:
+#### name: `str`, *Required*
 
-#### name: *Required*
+The name of the chat assistant.
 
-The name of the chat assistant. Defaults to `"assistant"`.
-
-#### avatar
+#### avatar: `str`
 
 Base64 encoding of the avatar. Defaults to `""`.
 
-#### knowledgebases: `list[str]` 
+#### dataset_ids: `list[str]`
 
 The IDs of the associated datasets. Defaults to `[""]`.
 
-#### llm
+#### llm: `Chat.LLM`
 
-The llm of the created chat. Defaults to `None`. When the value is `None`, a dictionary with the following values will be generated as the default.
+The LLM settings for the chat assistant to create. Defaults to `None`. When the value is `None`, a dictionary with the following values will be generated as the default. An `LLM` object contains the following attributes:
 
-An `LLM` object contains the following attributes:
-
-- `model_name`, `str`  
-  The chat model name. If it is `None`, the user's default chat model will be returned.  
-- `temperature`, `float`  
-  Controls the randomness of the model's predictions. A lower temperature increases the model's conficence in its responses; a higher temperature increases creativity and diversity. Defaults to `0.1`.  
-- `top_p`, `float`  
+- `model_name`: `str`  
+  The chat model name. If it is `None`, the user's default chat model will be used.  
+- `temperature`: `float`  
+  Controls the randomness of the model's predictions. A lower temperature increases the model's confidence in its responses; a higher temperature increases creativity and diversity. Defaults to `0.1`.  
+- `top_p`: `float`  
   Also known as “nucleus sampling”, this parameter sets a threshold to select a smaller set of words to sample from. It focuses on the most likely words, cutting off the less probable ones. Defaults to `0.3`  
-- `presence_penalty`, `float`  
+- `presence_penalty`: `float`  
   This discourages the model from repeating the same information by penalizing words that have already appeared in the conversation. Defaults to `0.2`.
-- `frequency penalty`, `float`  
+- `frequency penalty`: `float`  
   Similar to the presence penalty, this reduces the model’s tendency to repeat the same words frequently. Defaults to `0.7`.
-- `max_token`, `int`  
-  This sets the maximum length of the model’s output, measured in the number of tokens (words or pieces of words). Defaults to `512`.
+- `max_token`: `int`  
+  The maximum length of the model’s output, measured in the number of tokens (words or pieces of words). Defaults to `512`.
 
-#### Prompt
+#### prompt: `Chat.Prompt`
 
 Instructions for the LLM to follow.  A `Prompt` object contains the following attributes:
 
-- `"similarity_threshold"`: `float` A similarity score to evaluate distance between two lines of text. It's weighted keywords similarity and vector cosine similarity. If the similarity between query and chunk is less than this threshold, the chunk will be filtered out. Defaults to `0.2`.
-- `"keywords_similarity_weight"`: `float` It's weighted keywords similarity and vector cosine similarity or rerank score (0~1). Defaults to `0.7`.
-- `"top_n"`: `int` Not all the chunks whose similarity score is above the 'similarity threshold' will be feed to LLMs. LLM can only see these 'Top N' chunks. Defaults to `8`.
-- `"variables"`: `list[dict[]]` If you use dialog APIs, the variables might help you chat with your clients with different strategies. The variables are used to fill in the 'System' part in prompt in order to give LLM a hint. The 'knowledge' is a very special variable which will be filled-in with the retrieved chunks. All the variables in 'System' should be curly bracketed. Defaults to `[{"key": "knowledge", "optional": True}]`
-- `"rerank_model"`: `str` If it is not specified, vector cosine similarity will be used; otherwise, reranking score will be used. Defaults to `""`.
-- `"empty_response"`: `str` If nothing is retrieved in the dataset for the user's question, this will be used as the response. To allow the LLM to improvise when nothing is retrieved, leave this blank. Defaults to `None`.
-- `"opener"`: `str` The opening greeting for the user. Defaults to `"Hi! I am your assistant, can I help you?"`.
-- `"show_quote`: `bool` Indicates whether the source of text should be displayed Defaults to `True`.
-- `"prompt"`: `str` The prompt content. Defaults to `You are an intelligent assistant. Please summarize the content of the dataset to answer the question. Please list the data in the knowledge base and answer in detail. When all knowledge base content is irrelevant to the question, your answer must include the sentence "The answer you are looking for is not found in the knowledge base!" Answers need to consider chat history.
+- `similarity_threshold`: `float` RAGFlow uses a hybrid of weighted keyword similarity and vector cosine similarity during retrieval. This argument sets the threshold for similarities between the user query and chunks. If a similarity score falls below this threshold, the corresponding chunk will be excluded from the results. The default value is `0.2`.
+- `keywords_similarity_weight`: `float` This argument sets the weight of keyword similarity in the hybrid similarity score with vector cosine similarity or reranking model similarity. By adjusting this weight, you can control the influence of keyword similarity in relation to other similarity measures. The default value is `0.7`.
+- `top_n`: `int` This argument specifies the number of top chunks with similarity scores above the `similarity_threshold` that are fed to the LLM. The LLM will *only* access these 'top N' chunks.  The default value is `8`.
+- `variables`: `list[dict[]]` This argument lists the variables to use in the 'System' field of **Chat Configurations**. Note that:
+  - `knowledge` is a reserved variable, which represents the retrieved chunks.
+  - All the variables in 'System' should be curly bracketed.
+  - The default value is `[{"key": "knowledge", "optional": True}]`.
+- `rerank_model`: `str` If it is not specified, vector cosine similarity will be used; otherwise, reranking score will be used. Defaults to `""`.
+- `empty_response`: `str` If nothing is retrieved in the dataset for the user's question, this will be used as the response. To allow the LLM to improvise when nothing is found, leave this blank. Defaults to `None`.
+- `opener`: `str` The opening greeting for the user. Defaults to `"Hi! I am your assistant, can I help you?"`.
+- `show_quote`: `bool` Indicates whether the source of text should be displayed. Defaults to `True`.
+- `prompt`: `str` The prompt content. Defaults to `You are an intelligent assistant. Please summarize the content of the dataset to answer the question. Please list the data in the knowledge base and answer in detail. When all knowledge base content is irrelevant to the question, your answer must include the sentence "The answer you are looking for is not found in the knowledge base!" Answers need to consider chat history.
       Here is the knowledge base:
       {knowledge}
-      The above is the knowledge base.`.
+      The above is the knowledge base.`
 
 ### Returns
 
@@ -876,17 +908,17 @@ Instructions for the LLM to follow.  A `Prompt` object contains the following at
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-kbs = rag.list_datasets(name="kb_1")
-list_kb=[]
-for kb in kbs:
-    list_kb.append(kb.id)
-assi = rag.create_chat("Miss R", knowledgebases=list_kb)
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+datasets = rag_object.list_datasets(name="kb_1")
+dataset_ids = []
+for dataset in datasets:
+    dataset_ids.append(dataset.id)
+assistant = rag_object.create_chat("Miss R", dataset_ids=dataset_ids)
 ```
 
 ---
 
-## Update chat
+## Update chat assistant
 
 ```python
 Chat.update(update_message: dict)
@@ -900,21 +932,24 @@ Updates configurations for the current chat assistant.
 
 A dictionary representing the attributes to update, with the following keys:
 
-- `"name"`: `str` The name of the chat assistant to update.
+- `"name"`: `str` The revised name of the chat assistant.
 - `"avatar"`: `str` Base64 encoding of the avatar. Defaults to `""`
-- `"knowledgebases"`: `list[str]` The datasets to update.
+- `"dataset_ids"`: `list[str]` The datasets to update.
 - `"llm"`: `dict` The LLM settings:
   - `"model_name"`, `str` The chat model name.
   - `"temperature"`, `float` Controls the randomness of the model's predictions.  
   - `"top_p"`, `float` Also known as “nucleus sampling”, this parameter sets a threshold to select a smaller set of words to sample from.  
   - `"presence_penalty"`, `float` This discourages the model from repeating the same information by penalizing words that have appeared in the conversation.
   - `"frequency penalty"`, `float` Similar to presence penalty, this reduces the model’s tendency to repeat the same words.
-  - `"max_token"`, `int` This sets the maximum length of the model’s output, measured in the number of tokens (words or pieces of words).
+  - `"max_token"`, `int` The maximum length of the model’s output, measured in the number of tokens (words or pieces of words).
 - `"prompt"` : Instructions for the LLM to follow.
-  - `"similarity_threshold"`: `float` A score to evaluate distance between two lines of text. It's weighted keywords similarity and vector cosine similarity. If the similarity between query and chunk is less than this threshold, the chunk will be filtered out. Defaults to `0.2`.
-  - `"keywords_similarity_weight"`: `float` It's weighted keywords similarity and vector cosine similarity or rerank score (0~1). Defaults to `0.7`.
-  - `"top_n"`: `int` Not all the chunks whose similarity score is above the 'similarity threshold' will be feed to LLMs. LLM can only see these 'Top N' chunks. Defaults to `8`.
-  - `"variables"`: `list[dict[]]` If you use dialog APIs, the variables might help you chat with your clients with different strategies. The variables are used to fill in the 'System' part in prompt in order to give LLM a hint. The 'knowledge' is a very special variable which will be filled-in with the retrieved chunks. All the variables in 'System' should be curly bracketed. Defaults to `[{"key": "knowledge", "optional": True}]`
+  - `"similarity_threshold"`: `float` RAGFlow uses a hybrid of weighted keyword similarity and vector cosine similarity during retrieval. This argument sets the threshold for similarities between the user query and chunks. If a similarity score falls below this threshold, the corresponding chunk will be excluded from the results. The default value is `0.2`.
+  - `"keywords_similarity_weight"`: `float` This argument sets the weight of keyword similarity in the hybrid similarity score with vector cosine similarity or reranking model similarity. By adjusting this weight, you can control the influence of keyword similarity in relation to other similarity measures. The default value is `0.7`.
+  - `"top_n"`: `int` This argument specifies the number of top chunks with similarity scores above the `similarity_threshold` that are fed to the LLM. The LLM will *only* access these 'top N' chunks.  The default value is `8`.
+  - `"variables"`: `list[dict[]]`  This argument lists the variables to use in the 'System' field of **Chat Configurations**. Note that:
+    - `knowledge` is a reserved variable, which represents the retrieved chunks.
+    - All the variables in 'System' should be curly bracketed.
+    - The default value is `[{"key": "knowledge", "optional": True}]`.
   - `"rerank_model"`: `str` If it is not specified, vector cosine similarity will be used; otherwise, reranking score will be used. Defaults to `""`.
   - `"empty_response"`: `str` If nothing is retrieved in the dataset for the user's question, this will be used as the response. To allow the LLM to improvise when nothing is retrieved, leave this blank. Defaults to `None`.
   - `"opener"`: `str` The opening greeting for the user. Defaults to `"Hi! I am your assistant, can I help you?"`.
@@ -934,15 +969,16 @@ A dictionary representing the attributes to update, with the following keys:
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-knowledge_base = rag.list_datasets(name="kb_1")
-assistant = rag.create_chat("Miss R", knowledgebases=knowledge_base)
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+datasets = rag_object.list_datasets(name="kb_1")
+dataset_id = datasets[0].id
+assistant = rag_object.create_chat("Miss R", dataset_ids=[dataset_id])
 assistant.update({"name": "Stefan", "llm": {"temperature": 0.8}, "prompt": {"top_n": 8}})
 ```
 
 ---
 
-## Delete chats
+## Delete chat assistants
 
 ```python
 RAGFlow.delete_chats(ids: list[str] = None)
@@ -954,7 +990,7 @@ Deletes chat assistants by ID.
 
 #### ids: `list[str]`
 
-The IDs of the chat assistants to delete. Defaults to `None`. If not specified, all chat assistants in the system will be deleted.
+The IDs of the chat assistants to delete. Defaults to `None`. If it is ot specified, all chat assistants in the system will be deleted.
 
 ### Returns
 
@@ -966,13 +1002,13 @@ The IDs of the chat assistants to delete. Defaults to `None`. If not specified, 
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-rag.delete_chats(ids=["id_1","id_2"])
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+rag_object.delete_chats(ids=["id_1","id_2"])
 ```
 
 ---
 
-## List chats
+## List chat assistants
 
 ```python
 RAGFlow.list_chats(
@@ -985,33 +1021,36 @@ RAGFlow.list_chats(
 ) -> list[Chat]
 ```
 
-Retrieves a list of chat assistants.
+Lists chat assistants.
 
 ### Parameters
 
-#### page
+#### page: `int`
 
 Specifies the page on which the chat assistants will be displayed. Defaults to `1`.
 
-#### page_size
+#### page_size: `int`
 
 The number of chat assistants on each page. Defaults to `1024`.
 
-#### order_by
+#### orderby: `str`
 
-The attribute by which the results are sorted. Defaults to `"create_time"`.
+The attribute by which the results are sorted. Available options:
 
-#### desc
+- `"create_time"` (default)
+- `"update_time"`
+
+#### desc: `bool`
 
 Indicates whether the retrieved chat assistants should be sorted in descending order. Defaults to `True`.
 
-#### id: `string`  
+#### id: `str`  
 
-The ID of the chat to retrieve. Defaults to `None`.
+The ID of the chat assistant to retrieve. Defaults to `None`.
 
-#### name: `string`  
+#### name: `str`  
 
-The name of the chat to retrieve. Defaults to `None`.
+The name of the chat assistant to retrieve. Defaults to `None`.
 
 ### Returns
 
@@ -1031,7 +1070,7 @@ for assistant in rag_object.list_chats():
 ---
 
 :::tip API GROUPING
-Chat-session APIs
+Chat Session APIs
 :::
 
 ---
@@ -1046,7 +1085,7 @@ Creates a chat session.
 
 ### Parameters
 
-#### name
+#### name: `str`
 
 The name of the chat session to create.
 
@@ -1064,11 +1103,13 @@ The name of the chat session to create.
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-assistant = rag.list_chats(name="Miss R")
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+assistant = rag_object.list_chats(name="Miss R")
 assistant = assistant[0]
 session = assistant.create_session()
 ```
+
+---
 
 ## Update session
 
@@ -1076,7 +1117,7 @@ session = assistant.create_session()
 Session.update(update_message: dict)
 ```
 
-Updates the current session name.
+Updates the current session.
 
 ### Parameters
 
@@ -1084,7 +1125,7 @@ Updates the current session name.
 
 A dictionary representing the attributes to update, with only one key:
 
-- `"name"`: `str` The name of the session to update.
+- `"name"`: `str` The revised name of the session.
 
 ### Returns
 
@@ -1096,98 +1137,11 @@ A dictionary representing the attributes to update, with only one key:
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-assistant = rag.list_chats(name="Miss R")
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+assistant = rag_object.list_chats(name="Miss R")
 assistant = assistant[0]
 session = assistant.create_session("session_name")
 session.update({"name": "updated_name"})
-```
-
----
-
-## Chat
-
-```python
-Session.ask(question: str, stream: bool = False) -> Optional[Message, iter[Message]]
-```
-
-Asks a question to start a conversation.
-
-### Parameters
-
-#### question *Required*
-
-The question to start an AI chat. Defaults to `None`.
-
-#### stream
-
-Indicates whether to output responses in a streaming way:
-
-- `True`: Enable streaming.
-- `False`: (Default) Disable streaming.
-
-### Returns
-
-- A `Message` object containing the response to the question if `stream` is set to `False`
-- An iterator containing multiple `message` objects (`iter[Message]`) if `stream` is set to `True`
-
-The following shows the attributes of a `Message` object:
-
-#### id: `str`
-
-The auto-generated message ID.
-
-#### content: `str`
-
-The content of the message. Defaults to `"Hi! I am your assistant, can I help you?"`.
-
-#### reference: `list[Chunk]`
-
-A list of `Chunk` objects representing references to the message, each containing the following attributes:
-
-- `id` `str`  
-  The chunk ID.
-- `content` `str`  
-  The content of the chunk.
-- `image_id` `str`  
-  The ID of the snapshot of the chunk.
-- `document_id` `str`  
-  The ID of the referenced document.
-- `document_name` `str`  
-  The name of the referenced document.
-- `position` `list[str]`  
-  The location information of the chunk within the referenced document.
-- `knowledgebase_id` `str`  
-  The ID of the dataset to which the referenced document belongs.
-- `similarity` `float`
-  A composite similarity score of the chunk ranging from `0` to `1`, with a higher value indicating greater similarity.
-- `vector_similarity` `float`  
-  A vector similarity score of the chunk ranging from `0` to `1`, with a higher value indicating greater similarity between vector embeddings.
-- `term_similarity` `float`  
-  A keyword similarity score of the chunk ranging from `0` to `1`, with a higher value indicating greater similarity between keywords.
-
-
-### Examples
-
-```python
-from ragflow import RAGFlow
-
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-assistant = rag.list_chats(name="Miss R")
-assistant = assistant[0]
-session = assistant.create_session()    
-
-print("\n==================== Miss R =====================\n")
-print(assistant.get_prologue())
-
-while True:
-    question = input("\n==================== User =====================\n> ")
-    print("\n==================== Miss R =====================\n")
-    
-    cont = ""
-    for ans in session.ask(question, stream=True):
-        print(answer.content[len(cont):], end='', flush=True)
-        cont = answer.content
 ```
 
 ---
@@ -1209,32 +1163,32 @@ Lists sessions associated with the current chat assistant.
 
 ### Parameters
 
-#### page
+#### page: `int`
 
 Specifies the page on which the sessions will be displayed. Defaults to `1`.
 
-#### page_size
+#### page_size: `int`
 
 The number of sessions on each page. Defaults to `1024`.
 
-#### orderby
+#### orderby: `str`
 
 The field by which sessions should be sorted. Available options:
 
 - `"create_time"` (default)
 - `"update_time"`
 
-#### desc
+#### desc: `bool`
 
 Indicates whether the retrieved sessions should be sorted in descending order. Defaults to `True`.
 
-#### id
+#### id: `str`
 
 The ID of the chat session to retrieve. Defaults to `None`.
 
-#### name
+#### name: `str`
 
-The name of the chat to retrieve. Defaults to `None`.
+The name of the chat session to retrieve. Defaults to `None`.
 
 ### Returns
 
@@ -1267,7 +1221,7 @@ Deletes sessions by ID.
 
 #### ids: `list[str]`
 
-The IDs of the sessions to delete. Defaults to `None`. If not specified, all sessions associated with the current chat assistant will be deleted.
+The IDs of the sessions to delete. Defaults to `None`. If it is not specified, all sessions associated with the current chat assistant will be deleted.
 
 ### Returns
 
@@ -1279,8 +1233,95 @@ The IDs of the sessions to delete. Defaults to `None`. If not specified, all ses
 ```python
 from ragflow import RAGFlow
 
-rag = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
-assistant = rag.list_chats(name="Miss R")
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+assistant = rag_object.list_chats(name="Miss R")
 assistant = assistant[0]
 assistant.delete_sessions(ids=["id_1","id_2"])
+```
+
+---
+
+## Converse
+
+```python
+Session.ask(question: str, stream: bool = False) -> Optional[Message, iter[Message]]
+```
+
+Asks a question to start an AI-powered conversation.
+
+### Parameters
+
+#### question: `str` *Required*
+
+The question to start an AI chat.
+
+#### stream: `bool`
+
+Indicates whether to output responses in a streaming way:
+
+- `True`: Enable streaming.
+- `False`: Disable streaming (default).
+
+### Returns
+
+- A `Message` object containing the response to the question if `stream` is set to `False`
+- An iterator containing multiple `message` objects (`iter[Message]`) if `stream` is set to `True`
+
+The following shows the attributes of a `Message` object:
+
+#### id: `str`
+
+The auto-generated message ID.
+
+#### content: `str`
+
+The content of the message. Defaults to `"Hi! I am your assistant, can I help you?"`.
+
+#### reference: `list[Chunk]`
+
+A list of `Chunk` objects representing references to the message, each containing the following attributes:
+
+- `id` `str`  
+  The chunk ID.
+- `content` `str`  
+  The content of the chunk.
+- `image_id` `str`  
+  The ID of the snapshot of the chunk.
+- `document_id` `str`  
+  The ID of the referenced document.
+- `document_name` `str`  
+  The name of the referenced document.
+- `position` `list[str]`  
+  The location information of the chunk within the referenced document.
+- `dataset_id` `str`  
+  The ID of the dataset to which the referenced document belongs.
+- `similarity` `float`
+  A composite similarity score of the chunk ranging from `0` to `1`, with a higher value indicating greater similarity.
+- `vector_similarity` `float`  
+  A vector similarity score of the chunk ranging from `0` to `1`, with a higher value indicating greater similarity between vector embeddings.
+- `term_similarity` `float`  
+  A keyword similarity score of the chunk ranging from `0` to `1`, with a higher value indicating greater similarity between keywords.
+
+
+### Examples
+
+```python
+from ragflow import RAGFlow
+
+rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
+assistant = rag_object.list_chats(name="Miss R")
+assistant = assistant[0]
+session = assistant.create_session()    
+
+print("\n==================== Miss R =====================\n")
+print(assistant.get_prologue())
+
+while True:
+    question = input("\n==================== User =====================\n> ")
+    print("\n==================== Miss R =====================\n")
+    
+    cont = ""
+    for ans in session.ask(question, stream=True):
+        print(answer.content[len(cont):], end='', flush=True)
+        cont = answer.content
 ```

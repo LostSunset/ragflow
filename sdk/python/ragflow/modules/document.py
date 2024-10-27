@@ -1,19 +1,20 @@
-import time
-
-from PIL.ImageFile import raise_oserror
-
+import json
 from .base import Base
 from .chunk import Chunk
 from typing import List
 
 
 class Document(Base):
+    class ParserConfig(Base):
+        def __init__(self, rag, res_dict):
+            super().__init__(rag, res_dict)
+
     def __init__(self, rag, res_dict):
         self.id = ""
         self.name = ""
         self.thumbnail = None
-        self.knowledgebase_id = None
-        self.parser_method = ""
+        self.dataset_id = None
+        self.chunk_method = "naive"
         self.parser_config = {"pages": [[1, 1000000]]}
         self.source_type = "local"
         self.type = ""
@@ -32,9 +33,26 @@ class Document(Base):
                 res_dict.pop(k)
         super().__init__(rag, res_dict)
 
+
+    def update(self, update_message: dict):
+        res = self.put(f'/dataset/{self.dataset_id}/info/{self.id}',
+                       update_message)
+        res = res.json()
+        if res.get("code") != 0:
+            raise Exception(res["message"])
+
+    def download(self):
+        res = self.get(f"/dataset/{self.dataset_id}/document/{self.id}")
+        try:
+            res = res.json()
+            raise Exception(res.get("message"))
+        except json.JSONDecodeError:
+            return res.content
+
+
     def list_chunks(self,offset=0, limit=30, keywords="", id:str=None):
         data={"document_id": self.id,"keywords": keywords,"offset":offset,"limit":limit,"id":id}
-        res = self.get(f'/dataset/{self.knowledgebase_id}/document/{self.id}/chunk', data)
+        res = self.get(f'/dataset/{self.dataset_id}/document/{self.id}/chunk', data)
         res = res.json()
         if res.get("code") == 0:
             chunks=[]
@@ -45,15 +63,15 @@ class Document(Base):
         raise Exception(res.get("message"))
 
 
-    def add_chunk(self, content: str):
-        res = self.post(f'/dataset/{self.knowledgebase_id}/document/{self.id}/chunk', {"content":content})
+    def add_chunk(self, content: str,important_keywords:List[str]=[]):
+        res = self.post(f'/dataset/{self.dataset_id}/document/{self.id}/chunk', {"content":content,"important_keywords":important_keywords})
         res = res.json()
         if res.get("code") == 0:
             return Chunk(self.rag,res["data"].get("chunk"))
         raise Exception(res.get("message"))
 
-    def delete_chunks(self,ids:List[str]):
-        res = self.rm(f"dataset/{self.knowledgebase_id}/document/{self.id}/chunk",{"ids":ids})
+    def delete_chunks(self,ids:List[str] = None):
+        res = self.rm(f"dataset/{self.dataset_id}/document/{self.id}/chunk",{"ids":ids})
         res = res.json()
         if res.get("code")!=0:
             raise Exception(res.get("message"))
