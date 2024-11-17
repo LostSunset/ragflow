@@ -13,6 +13,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 #
+import logging
 import inspect
 import os
 import sys
@@ -30,12 +31,8 @@ from peewee import (
 )
 from playhouse.pool import PooledMySQLDatabase, PooledPostgresqlDatabase
 from api.db import SerializedType, ParserType
-from api.settings import DATABASE, stat_logger, SECRET_KEY, DATABASE_TYPE
-from api.utils.log_utils import getLogger
+from api import settings
 from api import utils
-
-LOGGER = getLogger()
-
 
 def singleton(cls, *args, **kw):
     instances = {}
@@ -65,7 +62,7 @@ class TextFieldType(Enum):
 
 
 class LongTextField(TextField):
-    field_type = TextFieldType[DATABASE_TYPE.upper()].value
+    field_type = TextFieldType[settings.DATABASE_TYPE.upper()].value
 
 
 class JSONField(LongTextField):
@@ -285,10 +282,10 @@ class DatabaseMigrator(Enum):
 @singleton
 class BaseDataBase:
     def __init__(self):
-        database_config = DATABASE.copy()
+        database_config = settings.DATABASE.copy()
         db_name = database_config.pop("name")
-        self.database_connection = PooledDatabase[DATABASE_TYPE.upper()].value(db_name, **database_config)
-        stat_logger.info('init database on cluster mode successfully')
+        self.database_connection = PooledDatabase[settings.DATABASE_TYPE.upper()].value(db_name, **database_config)
+        logging.info('init database on cluster mode successfully')
 
 class PostgresDatabaseLock:
     def __init__(self, lock_name, timeout=10, db=None):
@@ -388,7 +385,7 @@ class DatabaseLock(Enum):
 
 
 DB = BaseDataBase().database_connection
-DB.lock = DatabaseLock[DATABASE_TYPE.upper()].value
+DB.lock = DatabaseLock[settings.DATABASE_TYPE.upper()].value
 
 
 def close_connection():
@@ -396,7 +393,7 @@ def close_connection():
         if DB:
             DB.close_stale(age=30)
     except Exception as e:
-        LOGGER.exception(e)
+        logging.exception(e)
 
 
 class DataBaseModel(BaseModel):
@@ -412,15 +409,15 @@ def init_database_tables(alter_fields=[]):
     for name, obj in members:
         if obj != DataBaseModel and issubclass(obj, DataBaseModel):
             table_objs.append(obj)
-            LOGGER.info(f"start create table {obj.__name__}")
+            logging.debug(f"start create table {obj.__name__}")
             try:
                 obj.create_table()
-                LOGGER.info(f"create table success: {obj.__name__}")
+                logging.debug(f"create table success: {obj.__name__}")
             except Exception as e:
-                LOGGER.exception(e)
+                logging.exception(e)
                 create_failed_list.append(obj.__name__)
     if create_failed_list:
-        LOGGER.info(f"create tables failed: {create_failed_list}")
+        logging.error(f"create tables failed: {create_failed_list}")
         raise Exception(f"create tables failed: {create_failed_list}")
     migrate_db()
 
@@ -470,7 +467,7 @@ class User(DataBaseModel, UserMixin):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
     is_superuser = BooleanField(null=True, help_text="is root", default=False, index=True)
@@ -479,7 +476,7 @@ class User(DataBaseModel, UserMixin):
         return self.email
 
     def get_id(self):
-        jwt = Serializer(secret_key=SECRET_KEY)
+        jwt = Serializer(secret_key=settings.SECRET_KEY)
         return jwt.dumps(str(self.access_token))
 
     class Meta:
@@ -525,7 +522,7 @@ class Tenant(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -542,7 +539,7 @@ class UserTenant(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -559,7 +556,7 @@ class InvitationCode(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -582,7 +579,7 @@ class LLMFactories(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -616,7 +613,7 @@ class LLM(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -703,7 +700,7 @@ class Knowledgebase(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -767,7 +764,7 @@ class Document(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -904,7 +901,7 @@ class Dialog(DataBaseModel):
     status = CharField(
         max_length=1,
         null=True,
-        help_text="is it validate(0: wasted，1: validate)",
+        help_text="is it validate(0: wasted, 1: validate)",
         default="1",
         index=True)
 
@@ -980,14 +977,14 @@ class CanvasTemplate(DataBaseModel):
 
 def migrate_db():
     with DB.transaction():
-        migrator = DatabaseMigrator[DATABASE_TYPE.upper()].value(DB)
+        migrator = DatabaseMigrator[settings.DATABASE_TYPE.upper()].value(DB)
         try:
             migrate(
                 migrator.add_column('file', 'source_type', CharField(max_length=128, null=False, default="",
                                                                      help_text="where dose this document come from",
                                                                      index=True))
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
@@ -996,7 +993,7 @@ def migrate_db():
                                               help_text="default rerank model ID"))
 
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
@@ -1004,59 +1001,59 @@ def migrate_db():
                                                                      help_text="default rerank model ID"))
 
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.add_column('dialog', 'top_k', IntegerField(default=1024))
 
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.alter_column_type('tenant_llm', 'api_key',
                                            CharField(max_length=1024, null=True, help_text="API KEY", index=True))
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.add_column('api_token', 'source',
                                     CharField(max_length=16, null=True, help_text="none|agent|dialog", index=True))
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.add_column("tenant","tts_id",
                     CharField(max_length=256,null=True,help_text="default tts model ID",index=True))
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.add_column('api_4_conversation', 'source',
                                     CharField(max_length=16, null=True, help_text="none|agent|dialog", index=True))
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             DB.execute_sql('ALTER TABLE llm DROP PRIMARY KEY;')
             DB.execute_sql('ALTER TABLE llm ADD PRIMARY KEY (llm_name,fid);')
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.add_column('task', 'retry_count', IntegerField(default=0))
             )
-        except Exception as e:
+        except Exception:
             pass
         try:
             migrate(
                 migrator.alter_column_type('api_token', 'dialog_id',
                                            CharField(max_length=32, null=True, index=True))
             )
-        except Exception as e:
+        except Exception:
             pass
 
