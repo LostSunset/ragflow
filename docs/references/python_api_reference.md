@@ -1059,7 +1059,7 @@ Deletes chat assistants by ID.
 
 #### ids: `list[str]`
 
-The IDs of the chat assistants to delete. Defaults to `None`. If it is ot specified, all chat assistants in the system will be deleted.
+The IDs of the chat assistants to delete. Defaults to `None`. If it is empty or not specified, all chat assistants in the system will be deleted.
 
 ### Returns
 
@@ -1332,8 +1332,8 @@ The question to start an AI-powered conversation.
 
 Indicates whether to output responses in a streaming way:
 
-- `True`: Enable streaming.
-- `False`: Disable streaming (default).
+- `True`: Enable streaming (default).
+- `False`: Disable streaming.
 
 ### Returns
 
@@ -1450,8 +1450,8 @@ The question to start an AI-powered conversation.
 
 Indicates whether to output responses in a streaming way:
 
-- `True`: Enable streaming.
-- `False`: Disable streaming (default).
+- `True`: Enable streaming (default).
+- `False`: Disable streaming.
 
 ### Returns
 
