@@ -59,6 +59,21 @@ USER root
 
 WORKDIR /ragflow
 
+# install dependencies from poetry.lock file
+COPY pyproject.toml poetry.toml poetry.lock ./
+
+RUN --mount=type=cache,id=ragflow_builder_poetry,target=/root/.cache/pypoetry,sharing=locked \
+    if [ "$LIGHTEN" == "1" ]; then \
+        poetry install --no-root; \
+    else \
+        poetry install --no-root --with=full; \
+    fi
+
+COPY web web
+COPY docs docs
+RUN --mount=type=cache,id=ragflow_builder_npm,target=/root/.npm,sharing=locked \
+    cd web && npm install --force && npm run build
+
 COPY .git /ragflow/.git
 
 RUN current_commit=$(git rev-parse --short HEAD); \
@@ -75,22 +90,8 @@ RUN current_commit=$(git rev-parse --short HEAD); \
     else \
         version_info="$version_info full"; \
     fi; \
+    echo "RAGFlow version: $version_info"; \
     echo $version_info > /ragflow/VERSION
-
-COPY web web
-COPY docs docs
-RUN --mount=type=cache,id=ragflow_builder_npm,target=/root/.npm,sharing=locked \
-    cd web && npm install --force && npm run build
-
-# install dependencies from poetry.lock file
-COPY pyproject.toml poetry.toml poetry.lock ./
-
-RUN --mount=type=cache,id=ragflow_builder_poetry,target=/root/.cache/pypoetry,sharing=locked \
-    if [ "$LIGHTEN" == "1" ]; then \
-        poetry install --no-root; \
-    else \
-        poetry install --no-root --with=full; \
-    fi
 
 # production stage
 FROM base AS production
@@ -98,22 +99,16 @@ USER root
 
 WORKDIR /ragflow
 
-COPY --from=builder /ragflow/VERSION /ragflow/VERSION
+# Copy Python environment and packages
+ENV VIRTUAL_ENV=/ragflow/.venv
+COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 
 # Install python packages' dependencies
 # cv2 requires libGL.so.1
 RUN --mount=type=cache,id=ragflow_production_apt,target=/var/cache/apt,sharing=locked \
     apt update && apt install -y --no-install-recommends nginx libgl1 vim less && \
     rm -rf /var/lib/apt/lists/*
-
-COPY web web
-COPY api api
-COPY conf conf
-COPY deepdoc deepdoc
-COPY rag rag
-COPY agent agent
-COPY graphrag graphrag
-COPY pyproject.toml poetry.toml poetry.lock ./
 
 # Copy models downloaded via download_deps.py
 RUN mkdir -p /ragflow/rag/res/deepdoc /root/.ragflow
@@ -145,25 +140,31 @@ COPY cl100k_base.tiktoken /ragflow/9b5ad71b2ce5302211f9c61530b329a4922fc6a4
 # Add dependencies of selenium
 RUN --mount=type=bind,source=chrome-linux64-121-0-6167-85,target=/chrome-linux64.zip \
     unzip /chrome-linux64.zip && \
-    mv chrome-linux64 /opt/chrome/ && \
+    mv chrome-linux64 /opt/chrome && \
     ln -s /opt/chrome/chrome /usr/local/bin/
 RUN --mount=type=bind,source=chromedriver-linux64-121-0-6167-85,target=/chromedriver-linux64.zip \
     unzip -j /chromedriver-linux64.zip chromedriver-linux64/chromedriver && \
     mv chromedriver /usr/local/bin/ && \
     rm -f /usr/bin/google-chrome
 
-# Copy compiled web pages
-COPY --from=builder /ragflow/web/dist /ragflow/web/dist
-
-# Copy Python environment and packages
-ENV VIRTUAL_ENV=/ragflow/.venv
-COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
-ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
-
 ENV PYTHONPATH=/ragflow/
+
+COPY web web
+COPY api api
+COPY conf conf
+COPY deepdoc deepdoc
+COPY rag rag
+COPY agent agent
+COPY graphrag graphrag
+COPY pyproject.toml poetry.toml poetry.lock ./
 
 COPY docker/service_conf.yaml.template ./conf/service_conf.yaml.template
 COPY docker/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
+
+# Copy compiled web pages
+COPY --from=builder /ragflow/web/dist /ragflow/web/dist
+
+COPY --from=builder /ragflow/VERSION /ragflow/VERSION
 
 ENTRYPOINT ["./entrypoint.sh"]

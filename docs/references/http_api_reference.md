@@ -5,7 +5,7 @@ slug: /http_api_reference
 
 # HTTP API Reference
 
-A complete reference for RAGFlow's RESTful API. Before proceeding, please ensure you [have your RAGFlow API key ready for authentication](../guides/develop/acquire_ragflow_api_key.md).
+A complete reference for RAGFlow's RESTful API. Before proceeding, please ensure you [have your RAGFlow API key ready for authentication](https://ragflow.io/docs/dev/acquire_ragflow_api_key).
 
 ---
 
@@ -2120,7 +2120,7 @@ Failure:
 
 ---
 
-## Create session with an agent
+## Create session with agent
 
 **POST** `/api/v1/agents/{agent_id}/sessions`
 
