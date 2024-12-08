@@ -14,16 +14,20 @@ This quick start guide describes a general process from:
 - Starting up a local RAGFlow server, 
 - Creating a knowledge base, 
 - Intervening with file parsing, to 
-- Establishing an AI chat based on your datasets. 
+- Establishing an AI chat based on your datasets.
+
+:::danger IMPORTANT
+We officially support x86 CPU and Nvidia GPU, and this document offers instructions on deploying RAGFlow using Docker on x86 platforms. While we also test RAGFlow on ARM64 platforms, we do not plan to maintain RAGFlow Docker images for ARM.
+
+If you are on an ARM platform, following [this guide](https://ragflow.io/docs/dev/build_docker_image) to build a RAGFlow Docker image.
+:::
 
 ## Prerequisites
 
-- CPU &ge; 4 cores;
+- CPU &ge; 4 cores (x86);
 - RAM &ge; 16 GB;
 - Disk &ge; 50 GB;
 - Docker &ge; 24.0.0 & Docker Compose &ge; v2.26.1.
-
-  > If you have not installed Docker on your local machine (Windows, Mac, or Linux), see [Install Docker Engine](https://docs.docker.com/engine/install/).
 
 ## Start up the server
 
@@ -231,7 +235,7 @@ RAGFlow also supports deploying LLMs locally using Ollama, Xinference, or LocalA
 
 To add and configure an LLM: 
 
-1. Click on your logo on the top right of the page **>** **Model Providers**:
+1. Click on your logo on the top right of the page **>** **Model providers**:
 
    ![add llm](https://github.com/infiniflow/ragflow/assets/93570324/10635088-028b-4b3d-add9-5c5a6e626814)
 

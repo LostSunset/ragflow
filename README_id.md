@@ -72,9 +72,9 @@ Coba demo kami di [https://demo.ragflow.io](https://demo.ragflow.io).
 
 ## 🔥 Pembaruan Terbaru
 
-- 22-11-2024 Peningkatan definisi dan penggunaan variabel di Agen.
+- 2024-12-04 Mendukung skor pagerank ke basis pengetahuan.
+- 2024-11-22 Peningkatan definisi dan penggunaan variabel di Agen.
 - 2024-11-01: Penambahan ekstraksi kata kunci dan pembuatan pertanyaan terkait untuk meningkatkan akurasi pengambilan.
-- 2024-09-13: Penambahan mode pencarian untuk Q&A basis pengetahuan.
 - 2024-08-22: Dukungan untuk teks ke pernyataan SQL melalui RAG.
 - 2024-08-02: Dukungan GraphRAG yang terinspirasi oleh [graphrag](https://github.com/microsoft/graphrag) dan mind map.
 
@@ -247,9 +247,7 @@ Image ini berukuran sekitar 1 GB dan bergantung pada aplikasi LLM eksternal dan 
 ```bash
 git clone https://github.com/infiniflow/ragflow.git
 cd ragflow/
-pip3 install huggingface-hub nltk
-python3 download_deps.py
-docker build -f Dockerfile.slim -t infiniflow/ragflow:dev-slim .
+docker build --build-arg LIGHTEN=1 -f Dockerfile -t infiniflow/ragflow:dev-slim .
 ```
 
 ## 🔧 Membangun Docker Image Termasuk Model Embedding
@@ -259,8 +257,6 @@ Image ini berukuran sekitar 9 GB. Karena sudah termasuk model embedding, ia hany
 ```bash
 git clone https://github.com/infiniflow/ragflow.git
 cd ragflow/
-pip3 install huggingface-hub nltk
-python3 download_deps.py
 docker build -f Dockerfile -t infiniflow/ragflow:dev .
 ```
 
@@ -268,14 +264,14 @@ docker build -f Dockerfile -t infiniflow/ragflow:dev .
 
 1. Instal Poetry, atau lewati langkah ini jika sudah terinstal:
    ```bash
-   curl -sSL https://install.python-poetry.org | python3 -
+   pipx install poetry
+   export POETRY_VIRTUALENVS_CREATE=true POETRY_VIRTUALENVS_IN_PROJECT=true
    ```
 
 2. Clone kode sumber dan instal dependensi Python:
    ```bash
    git clone https://github.com/infiniflow/ragflow.git
    cd ragflow/
-   export POETRY_VIRTUALENVS_CREATE=true POETRY_VIRTUALENVS_IN_PROJECT=true
    ~/.local/bin/poetry install --sync --no-root # install modul python RAGFlow
    ```
 

@@ -74,8 +74,8 @@ class Dealer:
         offset, limit = pg * ps, (pg + 1) * ps
 
         src = req.get("fields", ["docnm_kwd", "content_ltks", "kb_id", "img_id", "title_tks", "important_kwd",
-                                 "doc_id", "position_list", "knowledge_graph_kwd",
-                                 "available_int", "content_with_weight"])
+                                 "doc_id", "position_list", "knowledge_graph_kwd", "question_kwd", "question_tks",
+                                 "available_int", "content_with_weight", "pagerank_fea"])
         kwds = set([])
 
         qst = req.get("question", "")
@@ -234,11 +234,13 @@ class Dealer:
         vector_column = f"q_{vector_size}_vec"
         zero_vector = [0.0] * vector_size
         ins_embd = []
+        pageranks = []
         for chunk_id in sres.ids:
             vector = sres.field[chunk_id].get(vector_column, zero_vector)
             if isinstance(vector, str):
                 vector = [float(v) for v in vector.split("\t")]
             ins_embd.append(vector)
+            pageranks.append(sres.field[chunk_id].get("pagerank_fea", 0))
         if not ins_embd:
             return [], [], []
 
@@ -249,15 +251,17 @@ class Dealer:
         for i in sres.ids:
             content_ltks = sres.field[i][cfield].split()
             title_tks = [t for t in sres.field[i].get("title_tks", "").split() if t]
+            question_tks = [t for t in sres.field[i].get("question_tks", "").split() if t]
             important_kwd = sres.field[i].get("important_kwd", [])
-            tks = content_ltks + title_tks*2 + important_kwd*5
+            tks = content_ltks + title_tks*2 + important_kwd*5 + question_tks*6
             ins_tw.append(tks)
 
         sim, tksim, vtsim = self.qryr.hybrid_similarity(sres.query_vector,
                                                         ins_embd,
                                                         keywords,
                                                         ins_tw, tkweight, vtweight)
-        return sim, tksim, vtsim
+
+        return sim+np.array(pageranks, dtype=float), tksim, vtsim
 
     def rerank_by_model(self, rerank_mdl, sres, query, tkweight=0.3,
                vtweight=0.7, cfield="content_ltks"):
@@ -319,11 +323,14 @@ class Dealer:
             sim = tsim = vsim = [1]*len(sres.ids)
             idx = list(range(len(sres.ids)))
 
+        def floor_sim(score):
+            return (int(score * 100.)%100)/100.
+
         dim = len(sres.query_vector)
         vector_column = f"q_{dim}_vec"
         zero_vector = [0.0] * dim
         for i in idx:
-            if sim[i] < similarity_threshold:
+            if floor_sim(sim[i]) < similarity_threshold:
                 break
             if len(ranks["chunks"]) >= page_size:
                 if aggs:
@@ -334,8 +341,6 @@ class Dealer:
             dnm = chunk["docnm_kwd"]
             did = chunk["doc_id"]
             position_list = chunk.get("position_list", "[]")
-            if not position_list:
-                position_list = "[]"
             d = {
                 "chunk_id": id,
                 "content_ltks": chunk["content_ltks"],
@@ -351,7 +356,7 @@ class Dealer:
                 "vector": chunk.get(vector_column, zero_vector),
                 "positions": json.loads(position_list)
             }
-            if highlight:
+            if highlight and sres.highlight:
                 if id in sres.highlight:
                     d["highlight"] = rmSpace(sres.highlight[id])
                 else:

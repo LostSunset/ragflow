@@ -56,11 +56,11 @@
 
 ## 🔥 업데이트
 
+- 2024-12-04 지식베이스에 대한 페이지랭크 점수를 지원합니다.
+
 - 2024-11-22 에이전트의 변수 정의 및 사용을 개선했습니다.
   
 - 2024-11-01 파싱된 청크에 키워드 추출 및 관련 질문 생성을 추가하여 재현율을 향상시킵니다.
-  
-- 2024-09-13 지식베이스 Q&A 검색 모드를 추가합니다.
   
 - 2024-08-22 RAG를 통해 SQL 문에 텍스트를 지원합니다.
   
@@ -230,9 +230,7 @@ RAGFlow 는 기본적으로 Elasticsearch 를 사용하여 전체 텍스트 및 
 ```bash
 git clone https://github.com/infiniflow/ragflow.git
 cd ragflow/
-pip3 install huggingface-hub nltk
-python3 download_deps.py
-docker build -f Dockerfile.slim -t infiniflow/ragflow:dev-slim .
+docker build --build-arg LIGHTEN=1 -f Dockerfile -t infiniflow/ragflow:dev-slim .
 ```
 
 ## 🔧 소스 코드로 Docker 이미지를 컴파일합니다(임베딩 모델 포함)
@@ -242,8 +240,6 @@ docker build -f Dockerfile.slim -t infiniflow/ragflow:dev-slim .
 ```bash
 git clone https://github.com/infiniflow/ragflow.git
 cd ragflow/
-pip3 install huggingface-hub nltk
-python3 download_deps.py
 docker build -f Dockerfile -t infiniflow/ragflow:dev .
 ```
 
@@ -251,14 +247,14 @@ docker build -f Dockerfile -t infiniflow/ragflow:dev .
 
 1. Poetry를 설치하거나 이미 설치된 경우 이 단계를 건너뜁니다:
    ```bash
-   curl -sSL https://install.python-poetry.org | python3 -
+   pipx install poetry
+   export POETRY_VIRTUALENVS_CREATE=true POETRY_VIRTUALENVS_IN_PROJECT=true
    ```
 
 2. 소스 코드를 클론하고 Python 의존성을 설치합니다:
    ```bash
    git clone https://github.com/infiniflow/ragflow.git
    cd ragflow/
-   export POETRY_VIRTUALENVS_CREATE=true POETRY_VIRTUALENVS_IN_PROJECT=true
    ~/.local/bin/poetry install --sync --no-root # install RAGFlow dependent python modules
    ```
 

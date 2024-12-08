@@ -1,3 +1,5 @@
+import { FileMimeType } from '@/constants/common';
+import fileManagerService from '@/services/file-manager-service';
 import { UploadFile } from 'antd';
 
 export const transformFile2Base64 = (val: any): Promise<any> => {
@@ -100,29 +102,27 @@ export const getBase64FromUploadFileList = async (fileList?: UploadFile[]) => {
   return '';
 };
 
-export const downloadFile = ({
-  url,
+export const downloadFileFromBlob = (blob: Blob, name?: string) => {
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  if (name) {
+    a.download = name;
+  }
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+export const downloadDocument = async ({
+  id,
   filename,
-  target,
 }: {
-  url: string;
+  id: string;
   filename?: string;
-  target?: string;
 }) => {
-  console.log('downloadFile', url);
-  const downloadElement = document.createElement('a');
-  downloadElement.style.display = 'none';
-  downloadElement.href = url;
-  if (target) {
-    downloadElement.target = '_blank';
-  }
-  downloadElement.rel = 'noopener noreferrer';
-  if (filename) {
-    downloadElement.download = filename;
-  }
-  document.body.appendChild(downloadElement);
-  downloadElement.click();
-  document.body.removeChild(downloadElement);
+  const response = await fileManagerService.getDocumentFile({}, id);
+  const blob = new Blob([response.data], { type: response.data.type });
+  downloadFileFromBlob(blob, filename);
 };
 
 const Units = ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
@@ -137,4 +137,12 @@ export const formatBytes = (x: string | number) => {
   }
 
   return n.toFixed(n < 10 && l > 0 ? 1 : 0) + ' ' + Units[l];
+};
+
+export const downloadJsonFile = async (
+  data: Record<string, any>,
+  fileName: string,
+) => {
+  const blob = new Blob([JSON.stringify(data)], { type: FileMimeType.Json });
+  downloadFileFromBlob(blob, fileName);
 };
