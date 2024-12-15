@@ -86,10 +86,10 @@ class FulltextQueryer:
                 syn = self.syn.lookup(tk)
                 syn = rag_tokenizer.tokenize(" ".join(syn)).split()
                 keywords.extend(syn)
-                syn = ["\"{}\"^{:.4f}".format(s, w / 4.) for s in syn]
+                syn = ["\"{}\"^{:.4f}".format(s, w / 4.) for s in syn if s]
                 syns.append(" ".join(syn))
 
-            q = ["({}^{:.4f}".format(tk, w) + " {})".format(syn) for (tk, w), syn in zip(tks_w, syns) if tk]
+            q = ["({}^{:.4f}".format(tk, w) + " {})".format(syn) for (tk, w), syn in zip(tks_w, syns) if tk and not re.match(r"[.^+\(\)-]", tk)]
             for i in range(1, len(tks_w)):
                 q.append(
                     '"%s %s"^%.4f'
@@ -121,7 +121,8 @@ class FulltextQueryer:
             keywords.append(tt)
             twts = self.tw.weights([tt])
             syns = self.syn.lookup(tt)
-            if syns and len(keywords) < 32: keywords.extend(syns)
+            if syns and len(keywords) < 32:
+                keywords.extend(syns)
             logging.debug(json.dumps(twts, ensure_ascii=False))
             tms = []
             for tk, w in sorted(twts, key=lambda x: x[1] * -1):
@@ -147,7 +148,8 @@ class FulltextQueryer:
 
                 tk_syns = self.syn.lookup(tk)
                 tk_syns = [FulltextQueryer.subSpecialChar(s) for s in tk_syns]
-                if len(keywords) < 32: keywords.extend([s for s in tk_syns if s])
+                if len(keywords) < 32:
+                    keywords.extend([s for s in tk_syns if s])
                 tk_syns = [rag_tokenizer.fine_grained_tokenize(s) for s in tk_syns if s]
                 tk_syns = [f"\"{s}\"" if s.find(" ")>0 else s for s in tk_syns]
 

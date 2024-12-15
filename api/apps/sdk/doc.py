@@ -22,7 +22,7 @@ from rag.nlp import rag_tokenizer
 from api.db import LLMType, ParserType
 from api.db.services.llm_service import TenantLLMService
 from api import settings
-import hashlib
+import xxhash
 import re
 from api.utils.api_utils import token_required
 from api.db.db_models import Task
@@ -41,12 +41,11 @@ from api.utils.api_utils import construct_json_result, get_parser_config
 from rag.nlp import search
 from rag.utils import rmSpace
 from rag.utils.storage_factory import STORAGE_IMPL
-import os
 
 MAXIMUM_OF_UPLOADING_FILES = 256
 
 
-@manager.route("/datasets/<dataset_id>/documents", methods=["POST"])
+@manager.route("/datasets/<dataset_id>/documents", methods=["POST"])  # noqa: F821
 @token_required
 def upload(dataset_id, tenant_id):
     """
@@ -154,7 +153,7 @@ def upload(dataset_id, tenant_id):
     return get_result(data=renamed_doc_list)
 
 
-@manager.route("/datasets/<dataset_id>/documents/<document_id>", methods=["PUT"])
+@manager.route("/datasets/<dataset_id>/documents/<document_id>", methods=["PUT"])  # noqa: F821
 @token_required
 def update_doc(tenant_id, dataset_id, document_id):
     """
@@ -297,7 +296,7 @@ def update_doc(tenant_id, dataset_id, document_id):
     return get_result()
 
 
-@manager.route("/datasets/<dataset_id>/documents/<document_id>", methods=["GET"])
+@manager.route("/datasets/<dataset_id>/documents/<document_id>", methods=["GET"])  # noqa: F821
 @token_required
 def download(tenant_id, dataset_id, document_id):
     """
@@ -361,7 +360,7 @@ def download(tenant_id, dataset_id, document_id):
     )
 
 
-@manager.route("/datasets/<dataset_id>/documents", methods=["GET"])
+@manager.route("/datasets/<dataset_id>/documents", methods=["GET"])  # noqa: F821
 @token_required
 def list_docs(dataset_id, tenant_id):
     """
@@ -495,7 +494,7 @@ def list_docs(dataset_id, tenant_id):
     return get_result(data={"total": tol, "docs": renamed_doc_list})
 
 
-@manager.route("/datasets/<dataset_id>/documents", methods=["DELETE"])
+@manager.route("/datasets/<dataset_id>/documents", methods=["DELETE"])  # noqa: F821
 @token_required
 def delete(tenant_id, dataset_id):
     """
@@ -587,7 +586,7 @@ def delete(tenant_id, dataset_id):
     return get_result()
 
 
-@manager.route("/datasets/<dataset_id>/chunks", methods=["POST"])
+@manager.route("/datasets/<dataset_id>/chunks", methods=["POST"])  # noqa: F821
 @token_required
 def parse(tenant_id, dataset_id):
     """
@@ -654,7 +653,7 @@ def parse(tenant_id, dataset_id):
     return get_result()
 
 
-@manager.route("/datasets/<dataset_id>/chunks", methods=["DELETE"])
+@manager.route("/datasets/<dataset_id>/chunks", methods=["DELETE"])  # noqa: F821
 @token_required
 def stop_parsing(tenant_id, dataset_id):
     """
@@ -712,7 +711,7 @@ def stop_parsing(tenant_id, dataset_id):
     return get_result()
 
 
-@manager.route("/datasets/<dataset_id>/documents/<document_id>/chunks", methods=["GET"])
+@manager.route("/datasets/<dataset_id>/documents/<document_id>/chunks", methods=["GET"])  # noqa: F821
 @token_required
 def list_chunks(tenant_id, dataset_id, document_id):
     """
@@ -847,7 +846,7 @@ def list_chunks(tenant_id, dataset_id, document_id):
                 "question_kwd": sres.field[id].get("question_kwd", []),
                 "img_id": sres.field[id].get("img_id", ""),
                 "available_int": sres.field[id].get("available_int", 1),
-                "positions": sres.field[id].get("position_int", "").split("\t"),
+                "positions": sres.field[id].get("position_int", []),
             }
             if len(d["positions"]) % 5 == 0:
                 poss = []
@@ -896,7 +895,7 @@ def list_chunks(tenant_id, dataset_id, document_id):
     return get_result(data=res)
 
 
-@manager.route(
+@manager.route(  # noqa: F821
     "/datasets/<dataset_id>/documents/<document_id>/chunks", methods=["POST"]
 )
 @token_required
@@ -976,19 +975,16 @@ def add_chunk(tenant_id, dataset_id, document_id):
     if not req.get("content"):
         return get_error_data_result(message="`content` is required")
     if "important_keywords" in req:
-        if type(req["important_keywords"]) != list:
+        if not isinstance(req["important_keywords"], list):
             return get_error_data_result(
                 "`important_keywords` is required to be a list"
             )
     if "questions" in req:
-        if type(req["questions"]) != list:
+        if not isinstance(req["questions"], list):
             return get_error_data_result(
                 "`questions` is required to be a list"
             )
-    md5 = hashlib.md5()
-    md5.update((req["content"] + document_id).encode("utf-8"))
-
-    chunk_id = md5.hexdigest()
+    chunk_id = xxhash.xxh64((req["content"] + document_id).encode("utf-8")).hexdigest()
     d = {
         "id": chunk_id,
         "content_ltks": rag_tokenizer.tokenize(req["content"]),
@@ -1039,7 +1035,7 @@ def add_chunk(tenant_id, dataset_id, document_id):
     # return get_result(data={"chunk_id": chunk_id})
 
 
-@manager.route(
+@manager.route(  # noqa: F821
     "datasets/<dataset_id>/documents/<document_id>/chunks", methods=["DELETE"]
 )
 @token_required
@@ -1099,7 +1095,7 @@ def rm_chunk(tenant_id, dataset_id, document_id):
     return get_result(message=f"deleted {chunk_number} chunks")
 
 
-@manager.route(
+@manager.route(  # noqa: F821
     "/datasets/<dataset_id>/documents/<document_id>/chunks/<chunk_id>", methods=["PUT"]
 )
 @token_required
@@ -1209,7 +1205,7 @@ def update_chunk(tenant_id, dataset_id, document_id, chunk_id):
     return get_result()
 
 
-@manager.route("/retrieval", methods=["POST"])
+@manager.route("/retrieval", methods=["POST"])  # noqa: F821
 @token_required
 def retrieval_test(tenant_id):
     """

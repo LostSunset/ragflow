@@ -31,11 +31,11 @@ from api.utils.api_utils import server_error_response, get_data_error_result, va
 from api.db.services.document_service import DocumentService
 from api import settings
 from api.utils.api_utils import get_json_result
-import hashlib
+import xxhash
 import re
 
 
-@manager.route('/list', methods=['POST'])
+@manager.route('/list', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("doc_id")
 def list_chunk():
@@ -71,7 +71,7 @@ def list_chunk():
                 "question_kwd": sres.field[id].get("question_kwd", []),
                 "image_id": sres.field[id].get("img_id", ""),
                 "available_int": int(sres.field[id].get("available_int", 1)),
-                "positions": json.loads(sres.field[id].get("position_list", "[]")),
+                "positions": sres.field[id].get("position_int", []),
             }
             assert isinstance(d["positions"], list)
             assert len(d["positions"]) == 0 or (isinstance(d["positions"][0], list) and len(d["positions"][0]) == 5)
@@ -84,7 +84,7 @@ def list_chunk():
         return server_error_response(e)
 
 
-@manager.route('/get', methods=['GET'])
+@manager.route('/get', methods=['GET'])  # noqa: F821
 @login_required
 def get():
     chunk_id = request.args["chunk_id"]
@@ -113,7 +113,7 @@ def get():
         return server_error_response(e)
 
 
-@manager.route('/set', methods=['POST'])
+@manager.route('/set', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("doc_id", "chunk_id", "content_with_weight",
                   "important_kwd", "question_kwd")
@@ -164,7 +164,7 @@ def set():
         return server_error_response(e)
 
 
-@manager.route('/switch', methods=['POST'])
+@manager.route('/switch', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("chunk_ids", "available_int", "doc_id")
 def switch():
@@ -184,7 +184,7 @@ def switch():
         return server_error_response(e)
 
 
-@manager.route('/rm', methods=['POST'])
+@manager.route('/rm', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("chunk_ids", "doc_id")
 def rm():
@@ -203,14 +203,12 @@ def rm():
         return server_error_response(e)
 
 
-@manager.route('/create', methods=['POST'])
+@manager.route('/create', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("doc_id", "content_with_weight")
 def create():
     req = request.json
-    md5 = hashlib.md5()
-    md5.update((req["content_with_weight"] + req["doc_id"]).encode("utf-8"))
-    chunck_id = md5.hexdigest()
+    chunck_id = xxhash.xxh64((req["content_with_weight"] + req["doc_id"]).encode("utf-8")).hexdigest()
     d = {"id": chunck_id, "content_ltks": rag_tokenizer.tokenize(req["content_with_weight"]),
          "content_with_weight": req["content_with_weight"]}
     d["content_sm_ltks"] = rag_tokenizer.fine_grained_tokenize(d["content_ltks"])
@@ -237,7 +235,8 @@ def create():
         e, kb = KnowledgebaseService.get_by_id(doc.kb_id)
         if not e:
             return get_data_error_result(message="Knowledgebase not found!")
-        if kb.pagerank: d["pagerank_fea"] = kb.pagerank
+        if kb.pagerank:
+            d["pagerank_fea"] = kb.pagerank
 
         embd_id = DocumentService.get_embd_id(req["doc_id"])
         embd_mdl = LLMBundle(tenant_id, LLMType.EMBEDDING.value, embd_id)
@@ -254,7 +253,7 @@ def create():
         return server_error_response(e)
 
 
-@manager.route('/retrieval_test', methods=['POST'])
+@manager.route('/retrieval_test', methods=['POST'])  # noqa: F821
 @login_required
 @validate_request("kb_id", "question")
 def retrieval_test():
@@ -313,7 +312,7 @@ def retrieval_test():
         return server_error_response(e)
 
 
-@manager.route('/knowledge_graph', methods=['GET'])
+@manager.route('/knowledge_graph', methods=['GET'])  # noqa: F821
 @login_required
 def knowledge_graph():
     doc_id = request.args["doc_id"]
