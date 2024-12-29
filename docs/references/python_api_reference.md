@@ -1,4 +1,4 @@
-from scipy.special import kwargs---
+---
 sidebar_position: 2
 slug: /python_api_reference
 ---
@@ -641,6 +641,10 @@ print("Async bulk parsing cancelled.")
 
 ---
 
+## CHUNK MANAGEMENT WITHIN DATASET
+
+---
+
 ### Add chunk
 
 ```python
@@ -732,8 +736,8 @@ from ragflow_sdk import RAGFlow
 rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
 dataset = rag_object.list_datasets("123")
 dataset = dataset[0]
-dataset.async_parse_documents(["wdfxb5t547d"])
-for chunk in doc.list_chunks(keywords="rag", page=0, page_size=12):
+docs = dataset.list_documents(keywords="test", page=1, page_size=12)
+for chunk in docs[0].list_chunks(keywords="rag", page=0, page_size=12):
     print(chunk)
 ```
 
@@ -890,17 +894,12 @@ dataset = rag_object.list_datasets(name="ragflow")
 dataset = dataset[0]
 name = 'ragflow_test.txt'
 path = './test_data/ragflow_test.txt'
-rag_object.create_document(dataset, name=name, blob=open(path, "rb").read())
-doc = dataset.list_documents(name=name)
-doc = doc[0]
-dataset.async_parse_documents([doc.id])
-for c in rag_object.retrieve(question="What's ragflow?", 
-             dataset_ids=[dataset.id], document_ids=[doc.id], 
-             page=1, page_size=30, similarity_threshold=0.2, 
-             vector_similarity_weight=0.3,
-             top_k=1024
-             ):
-    print(c)
+documents =[{"displayed_name":"test_retrieve_chunks.txt","blob":open(path, "rb").read()}]
+docs = dataset.upload_documents(documents)
+doc = docs[0]
+doc.add_chunk(content="This is a chunk addition test")
+for c in rag_object.retrieve(dataset_ids=[dataset.id],document_ids=[doc.id]):
+  print(c)
 ```
 
 ---
@@ -1436,11 +1435,11 @@ The parameters in `begin` component.
 #### Examples
 
 ```python
-from ragflow_sdk import RAGFlow
+from ragflow_sdk import RAGFlow, Agent
 
 rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
 AGENT_ID = "AGENT_ID"
-session = create_session(AGENT_ID,rag_object)
+session = Agent.create_session(AGENT_ID, rag_object)
 ```
 
 ---
@@ -1513,11 +1512,11 @@ A list of `Chunk` objects representing references to the message, each containin
 #### Examples
 
 ```python
-from ragflow_sdk import RAGFlow,Agent
+from ragflow_sdk import RAGFlow, Agent
 
 rag_object = RAGFlow(api_key="<YOUR_API_KEY>", base_url="http://<YOUR_BASE_URL>:9380")
 AGENT_id = "AGENT_ID"
-session = Agent.create_session(AGENT_id,rag_object)    
+session = Agent.create_session(AGENT_id, rag_object)    
 
 print("\n===== Miss R ====\n")
 print("Hello. What can I do for you?")
